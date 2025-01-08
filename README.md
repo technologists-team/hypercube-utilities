@@ -7,4 +7,4 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
 ## License
-All code for the repository is licensed under [MIT](https://github.com/Tornado-Technology/hypercube-utilities/blob/main/LICENSE).
+All code for the repository is licensed under [MIT](https://github.com/technologists-team/hypercube-utilities/blob/main/LICENSE).
