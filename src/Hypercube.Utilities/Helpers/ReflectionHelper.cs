@@ -47,16 +47,16 @@ public static class ReflectionHelper
     /// Sets the value of a field in the given object using reflection, based on the provided field name.
     /// </summary>
     /// <param name="obj">The object that contains the field.</param>
-    /// <param name="fieldName">The name of the field to be modified.</param>
+    /// <param name="name">The name of the field to be modified.</param>
     /// <param name="value">The value to assign to the field.</param>
-    public static void SetField(object obj, string fieldName, object value)
+    public static void SetField(object obj, string name, object value)
     {
         var type = obj.GetType();
-        var fieldInfo = type.GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+        var fieldInfo = type.GetField(name, BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
         
         // If the field does not exist (i.e., it's null), throw an exception with a relevant message.
         if (fieldInfo is null)
-            throw new ArgumentException($"Field '{fieldName}' not found in type {type.FullName}");
+            throw new ArgumentException($"Field {name} not found in type {type.FullName}");
 
         fieldInfo.SetValue(obj, value);
     }
