@@ -25,6 +25,23 @@ public static class ReflectionHelper
 
         return result;
     }
+
+    /// <summary>
+    /// Sets the value of a property in the given object using reflection, based on the provided property name.
+    /// </summary>
+    /// <param name="obj">The object that contains the property.</param>
+    /// <param name="name">The name of the property to be modified.</param>
+    /// <param name="value">The value to assign to the field.</param>
+    public static void SetProperty(object obj, string name, object value)
+    {
+        var type = obj.GetType();
+        var propertyInfo = type.GetProperty(name, BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+
+        if (propertyInfo is null)
+            throw new ArgumentException($"Property {name} not found in type {type.FullName}");
+        
+        propertyInfo.SetValue(obj, value);
+    }
     
     /// <summary>
     /// Sets the value of a field in the given object using reflection, based on the provided field name.
