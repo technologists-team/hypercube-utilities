@@ -4,9 +4,24 @@ using JetBrains.Annotations;
 
 namespace Hypercube.Utilities.Helpers;
 
+/// <summary>
+/// A helper class for working with reflection.
+/// Provides methods for finding types, methods, properties and fields,
+/// and to manage their values using attributes and other metadata.
+/// </summary>
 [PublicAPI]
 public static class ReflectionHelper
 {
+    /// <summary>
+    /// Standard flags to look for type members, including instances, public and non-public members.
+    /// </summary>
+    private static readonly BindingFlags DefaultFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+    
+    /// <summary>
+    /// Retrieves all types from all loaded assemblies that are decorated with a specific attribute.
+    /// </summary>
+    /// <typeparam name="T">The type of the attribute to search for.</typeparam>
+    /// <returns>A dictionary where the key is the type and the value is the attribute instance.</returns>
     public static Dictionary<Type, T> GetAllTypesWithAttribute<T>() where T : Attribute
     {
         var assemblies = AppDomain.CurrentDomain.GetAssemblies();
@@ -32,10 +47,12 @@ public static class ReflectionHelper
     /// <param name="obj">The object that contains the property.</param>
     /// <param name="name">The name of the property to be modified.</param>
     /// <param name="value">The value to assign to the field.</param>
-    public static void SetProperty(object obj, string name, object value)
+    /// <param name="flags">Optional binding flags to control the search for the property.</param>
+    /// <exception cref="ArgumentException">Thrown if the property is not found in the object.</exception>
+    public static void SetProperty(object obj, string name, object value, BindingFlags? flags = null)
     {
         var type = obj.GetType();
-        var propertyInfo = type.GetProperty(name, BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+        var propertyInfo = type.GetProperty(name, flags ?? DefaultFlags);
 
         if (propertyInfo is null)
             throw new ArgumentException($"Property {name} not found in type {type.FullName}");
@@ -49,12 +66,13 @@ public static class ReflectionHelper
     /// <param name="obj">The object that contains the field.</param>
     /// <param name="name">The name of the field to be modified.</param>
     /// <param name="value">The value to assign to the field.</param>
-    public static void SetField(object obj, string name, object value)
+    /// <param name="flags">Optional binding flags to control the search for the field.</param>
+    /// <exception cref="ArgumentException">Thrown if the field is not found in the object.</exception>
+    public static void SetField(object obj, string name, object value, BindingFlags? flags = null)
     {
         var type = obj.GetType();
-        var fieldInfo = type.GetField(name, BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+        var fieldInfo = type.GetField(name, flags ?? DefaultFlags);
         
-        // If the field does not exist (i.e., it's null), throw an exception with a relevant message.
         if (fieldInfo is null)
             throw new ArgumentException($"Field {name} not found in type {type.FullName}");
 
@@ -67,10 +85,10 @@ public static class ReflectionHelper
     /// <typeparam name="T">The type of the attribute to search for.</typeparam>
     /// <param name="flags">Flags that control which methods are retrieved (e.g., public, non-public, instance).</param>
     /// <returns>A list of <see cref="MethodInfo"/> objects representing methods with the specified attribute.</returns>
-    public static List<MethodInfo> GetExecutableMethodsWithAttributeFromAllAssemblies<T>(BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance) where T : Attribute
+    public static List<MethodInfo> GetExecutableMethodsWithAttributeFromAllAssemblies<T>(BindingFlags? flags = null) where T : Attribute
     {
         var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-        return assemblies.SelectMany(assembly => GetExecutableMethodsWithAttribute<T>(assembly, flags))
+        return assemblies.SelectMany(assembly => GetExecutableMethodsWithAttribute<T>(assembly, flags ?? DefaultFlags))
             .ToList();
     }
     
@@ -80,9 +98,9 @@ public static class ReflectionHelper
     /// <typeparam name="T">The type of the attribute to search for.</typeparam>
     /// <param name="flags">Flags that control which methods are retrieved (e.g., public, non-public, instance).</param>
     /// <returns>A list of <see cref="MethodInfo"/> objects representing methods with the specified attribute.</returns>
-    public static List<MethodInfo> GetExecutableMethodsWithAttribute<T>(BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance) where T : Attribute
+    public static List<MethodInfo> GetExecutableMethodsWithAttribute<T>(BindingFlags? flags = null) where T : Attribute
     {
-        return GetExecutableMethodsWithAttribute<T>(Assembly.GetExecutingAssembly(), flags);
+        return GetExecutableMethodsWithAttribute<T>(Assembly.GetExecutingAssembly(), flags ?? DefaultFlags);
     }
     
     /// <summary>
@@ -92,11 +110,11 @@ public static class ReflectionHelper
     /// <param name="assembly">The assembly to inspect.</param>
     /// <param name="flags">Flags that control which methods are retrieved (e.g., public, non-public, instance).</param>
     /// <returns>A list of <see cref="MethodInfo"/> objects representing methods with the specified attribute.</returns>
-    public static List<MethodInfo> GetExecutableMethodsWithAttribute<T>(Assembly assembly, BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance) where T : Attribute
+    public static List<MethodInfo> GetExecutableMethodsWithAttribute<T>(Assembly assembly, BindingFlags? flags) where T : Attribute
     {
         return assembly.GetTypes() 
             .Where(t => t.IsExecutableType()) // Filter only executable types
-            .SelectMany(t => t.GetMethods(flags)) // Get methods from each type
+            .SelectMany(t => t.GetMethods(flags ?? DefaultFlags)) // Get methods from each type
             .Where(m => m.HasCustomAttribute<T>()) // Filter methods with the specified attribute
             .ToList();
     }
@@ -108,9 +126,9 @@ public static class ReflectionHelper
     /// <param name="type">The type to inspect.</param>
     /// <param name="flags">Flags that control which methods are retrieved (e.g., public, non-public, instance).</param>
     /// <returns>A list of <see cref="MethodInfo"/> objects representing methods with the specified attribute.</returns>
-    public static List<MethodInfo> GetMethodsWithAttribute<T>(Type type, BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance) where T : Attribute
+    public static List<MethodInfo> GetMethodsWithAttribute<T>(Type type, BindingFlags? flags) where T : Attribute
     {
-        return type.GetMethods(flags)
+        return type.GetMethods(flags ?? DefaultFlags)
             .Where(m => m.HasCustomAttribute<T>()) // Filter methods with the specified attribute
             .ToList();
     }
