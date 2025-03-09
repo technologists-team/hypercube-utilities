@@ -59,7 +59,25 @@ public static class ReflectionHelper
         
         propertyInfo.SetValue(obj, value);
     }
-    
+    /// <summary>
+    /// Gets the value of a property in the given object using reflection, based on the provided property name.
+    /// </summary>
+    /// <param name="obj">The object that contains the property.</param>
+    /// <param name="name">The name of the property to be retrieved.</param>
+    /// <param name="flags">Optional binding flags to control the search for the property.</param>
+    /// <returns>The value of the property.</returns>
+    /// <exception cref="ArgumentException">Thrown if the property is not found in the object.</exception>
+    public static object? GetProperty(object obj, string name, BindingFlags? flags = null)
+    {
+        var type = obj.GetType();
+        var propertyInfo = type.GetProperty(name, flags ?? DefaultFlags);
+
+        if (propertyInfo is null)
+            throw new ArgumentException($"Property {name} not found in type {type.FullName}");
+
+        return propertyInfo.GetValue(obj);
+    }
+
     /// <summary>
     /// Sets the value of a field in the given object using reflection, based on the provided field name.
     /// </summary>
@@ -77,6 +95,25 @@ public static class ReflectionHelper
             throw new ArgumentException($"Field {name} not found in type {type.FullName}");
 
         fieldInfo.SetValue(obj, value);
+    }
+    
+    /// <summary>
+    /// Gets the value of a field in the given object using reflection, based on the provided field name.
+    /// </summary>
+    /// <param name="obj">The object that contains the field.</param>
+    /// <param name="name">The name of the field to be retrieved.</param>
+    /// <param name="flags">Optional binding flags to control the search for the field.</param>
+    /// <returns>The value of the field.</returns>
+    /// <exception cref="ArgumentException">Thrown if the field is not found in the object.</exception>
+    public static object? GetField(object obj, string name, BindingFlags? flags = null)
+    {
+        var type = obj.GetType();
+        var fieldInfo = type.GetField(name, flags ?? DefaultFlags);
+
+        if (fieldInfo is null)
+            throw new ArgumentException($"Field {name} not found in type {type.FullName}");
+
+        return fieldInfo.GetValue(obj);
     }
     
     /// <summary>
