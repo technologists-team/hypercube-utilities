@@ -5,23 +5,16 @@ namespace Hypercube.Utilities.Helpers;
 [PublicAPI]
 public static class PathHelper
 {
-    public static string GetExecDirectory()
+    public static bool FileSystemCaseSensitive => !OperatingSystem.IsWindows() && !OperatingSystem.IsMacOS();
+    public static string ExecutionDirectory => AppDomain.CurrentDomain.BaseDirectory;
+    
+    public static string GetExecutionRelativeFile(string file)
     {
-        return AppDomain.CurrentDomain.BaseDirectory;
-    }
-
-    public static string GetExecRelativeFile(string file)
-    {
-        return Path.GetFullPath(Path.Combine(GetExecDirectory(), file));
+        return Path.GetFullPath(Path.Combine(ExecutionDirectory, file));
     }
     
     public static IEnumerable<string> GetFiles(string path)
     {
         return Directory.EnumerateFiles(path, "*", SearchOption.AllDirectories);
-    }
-    
-    public static bool IsFileSystemCaseSensitive()
-    {
-        return !OperatingSystem.IsWindows() && !OperatingSystem.IsMacOS();
     }
 }
