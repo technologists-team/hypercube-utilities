@@ -6,25 +6,23 @@ namespace Hypercube.UnitTests;
 public sealed class BitSetTests
 {
     [Test]
-    public void Constructor_ThrowsArgumentOutOfRangeException_WhenSizeIsLessThanOne()
+    public void ConstructorTest()
     {
         Assert.Throws<ArgumentOutOfRangeException>(() => _ = new BitSet(0));
         Assert.Throws<ArgumentOutOfRangeException>(() => _ = new BitSet(-1));
-    }
-
-    [Test]
-    public void Constructor_CreatesBitSetWithCorrectSize()
-    {
+        
         var bitSet = new BitSet(100);
         Assert.That(bitSet.Size, Is.EqualTo(100));
     }
     
-    
     [Test]
-    public void Set_And_Has_WorkCorrectly()
+    public void HasTest()
     {
         var bitSet = new BitSet(64);
         bitSet.Set(10);
+        
+        Assert.Throws<ArgumentOutOfRangeException>(() => bitSet.Has(-1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => bitSet.Has(64));
         
         using (Assert.EnterMultipleScope())
         {
@@ -34,7 +32,7 @@ public sealed class BitSetTests
     }
 
     [Test]
-    public void Clear_WorksCorrectly()
+    public void ClearTest()
     {
         var bitSet = new BitSet(64);
         bitSet.Set(10);
@@ -44,40 +42,23 @@ public sealed class BitSetTests
     }
 
     [Test]
-    public void Has_ThrowsArgumentOutOfRangeException_WhenIndexIsOutOfRange()
-    {
-        var bitSet = new BitSet(64);
-        
-        Assert.Throws<ArgumentOutOfRangeException>(() => bitSet.Has(-1));
-        Assert.Throws<ArgumentOutOfRangeException>(() => bitSet.Has(64));
-    }
-
-    [Test]
-    public void Equals_ReturnsTrue_ForEqualBitSets()
+    public void EqualsTest()
     {
         var bitSet1 = new BitSet(64);
         bitSet1.Set(10);
         
         var bitSet2 = new BitSet(64);
         bitSet2.Set(10);
+        
+        var bitSet3 = new BitSet(64);
+        bitSet3.Set(11);
 
         Assert.That(bitSet1, Is.EqualTo(bitSet2));
+        Assert.That(bitSet1, Is.Not.EqualTo(bitSet3));
     }
 
     [Test]
-    public void Equals_ReturnsFalse_ForDifferentBitSets()
-    {
-        var bitSet1 = new BitSet(64);
-        bitSet1.Set(10);
-        
-        var bitSet2 = new BitSet(64);
-        bitSet2.Set(11);
-
-        Assert.That(bitSet1, Is.Not.EqualTo(bitSet2));
-    }
-
-    [Test]
-    public void GetHashCode_ReturnsSameValue_ForEqualBitSets()
+    public void GetHashCodeTest()
     {
         var bitSet1 = new BitSet(64);
         bitSet1.Set(10);
@@ -89,7 +70,7 @@ public sealed class BitSetTests
     }
 
     [Test]
-    public void ToString_ReturnsCorrectRepresentation()
+    public void ToStringTest()
     {
         var bitSet = new BitSet(8);
         bitSet.Set(0);
@@ -100,7 +81,7 @@ public sealed class BitSetTests
     }
 
     [Test]
-    public void ApplyOperator_ThrowsArgumentException_WhenSizesDoNotMatch()
+    public void ApplyOperatorTest()
     {
         var bitSet1 = new BitSet(64);
         var bitSet2 = new BitSet(32);
@@ -109,7 +90,7 @@ public sealed class BitSetTests
     }
 
     [Test]
-    public void BitwiseOr_Operator_WorksCorrectly()
+    public void BitwiseOrTest()
     {
         var bitSet1 = new BitSet(8);
         bitSet1.Set(0);
@@ -131,7 +112,7 @@ public sealed class BitSetTests
     }
 
     [Test]
-    public void BitwiseAnd_Operator_WorksCorrectly()
+    public void BitwiseAndTest()
     {
         var bitSet1 = new BitSet(8);
         bitSet1.Set(0);
@@ -153,7 +134,7 @@ public sealed class BitSetTests
     }
 
     [Test]
-    public void BitwiseXor_Operator_WorksCorrectly()
+    public void BitwiseXorTest()
     {
         var bitSet1 = new BitSet(8);
         bitSet1.Set(0);
@@ -175,7 +156,7 @@ public sealed class BitSetTests
     }
 
     [Test]
-    public void BitwiseNot_Operator_WorksCorrectly()
+    public void BitwiseNotTest()
     {
         var bitSet = new BitSet(8);
         bitSet.Set(0);
