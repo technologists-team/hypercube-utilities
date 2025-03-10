@@ -7,7 +7,7 @@ on:
     types: [ opened, reopened, synchronize, ready_for_review ]
     branches: [ master ]
   workflow_dispatch:
-  
+
 env:
   DOTNET_NOLOGO: true
   DOTNET_CLI_TELEMETRY_OPTOUT: true
@@ -30,9 +30,16 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 9.0.x
-    
-    - name: 📁 Change directory
+
+    - name: 📁 List files (debug)
+      run: ls -R
+
+    - name: 📁 Change directory to src
       run: cd src
+      shell: bash
+
+    - name: 📁 Verify current directory (debug)
+      run: pwd
 
     - name: 📦 Install dotnet dependencies
       run: dotnet restore
