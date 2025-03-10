@@ -85,23 +85,26 @@ public sealed class DependenciesContainerTests
     private interface IService;
     private class Service : IService;
 
-    private  class DependentClass
+    private sealed class DependentClass
     {
         [SuppressMessage("ReSharper", "MemberHidesStaticFromOuterClass")]
+        [SuppressMessage("Compiler", "CS0649")]
         [UsedImplicitly, Dependency]
         public readonly IService? Service;
     }
 
     [UsedImplicitly]
-    private class A
+    private sealed class A
     {
+        [SuppressMessage("Compiler", "CS0414")]
         [UsedImplicitly, Dependency]
         private readonly B _dependency = default!;
     }
 
     [UsedImplicitly]
-    private class B
+    private sealed class B
     {
+        [SuppressMessage("Compiler", "CS0414")]
         [UsedImplicitly, Dependency]
         private readonly A _dependency = default!;
     }
