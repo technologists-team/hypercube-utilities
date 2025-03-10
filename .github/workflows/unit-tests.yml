@@ -23,9 +23,6 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: 📁 Change directory
-      run: cd src/
-
     - name: ⚙️ Setup Submodules
       run: git submodule update --init --recursive
 
@@ -34,6 +31,9 @@ jobs:
       with:
         dotnet-version: 9.0.x
     
+    - name: 📁 Change directory
+      run: cd src
+
     - name: 📦 Install dotnet dependencies
       run: dotnet restore
 
