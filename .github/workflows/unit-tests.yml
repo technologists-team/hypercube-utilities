@@ -23,6 +23,9 @@ jobs:
       with:
         fetch-depth: 0
 
+    - name: 📁 Change directory
+      run: cd src/
+
     - name: ⚙️ Setup Submodules
       run: git submodule update --init --recursive
 
