@@ -20,4 +20,8 @@
         </PackageReference>
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\Hypercube.Utilities\Hypercube.Utilities.csproj" />
+    </ItemGroup>
+    
 </Project>
