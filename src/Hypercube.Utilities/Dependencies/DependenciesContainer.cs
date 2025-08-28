@@ -5,18 +5,9 @@ using JetBrains.Annotations;
 
 namespace Hypercube.Utilities.Dependencies;
 
-/// <summary>
-/// Implements an IoC (Inversion of Control) container for dependency injection.
-/// </summary>
-/// <remarks>
-/// <para>
-/// If a dependency is registered in this container with a type already declared in the parent container,
-/// this will override it. When resolving the dependency, the value from this container will be returned.
-/// </para>
-/// </remarks>
-/// <seealso cref="DependencyAttribute"/>
+/// <inheritdoc/>
 [PublicAPI]
-public class DependenciesContainer
+public class DependenciesContainer : IDependenciesContainer
 {
     /// <summary>
     /// Binding flags to identify constructors for dependency injection.
@@ -28,10 +19,7 @@ public class DependenciesContainer
     /// </summary>
     private readonly DependenciesContainer? _parent;
 
-    /// <summary>
-    /// A dictionary that maps types to factory methods for creating instances.
-    /// </summary>
-    private readonly Dictionary<Type, Func<DependenciesContainer, object>> _factories = new();
+    private readonly Dictionary<Type, DependencyRegistration> _registrations = new();
 
     /// <summary>
     /// A dictionary of already created instances of dependencies.
@@ -41,7 +29,7 @@ public class DependenciesContainer
     /// <summary>
     /// Tracks types currently being resolved to detect circular dependencies.
     /// </summary>
-    private readonly HashSet<Type> _resolutions = new();
+    private readonly HashSet<Type> _resolutions = [];
 
     /// <summary>
     /// Lock object to ensure thread safety.
@@ -57,40 +45,28 @@ public class DependenciesContainer
         _parent = parent;
     }
 
-    /// <summary>
-    /// Registers a type for dependency injection using itself as the implementation.
-    /// </summary>
-    /// <typeparam name="T">The type to register.</typeparam>
-    public void Register<T>()
+    #region Register
+    
+    /// <inheritdoc/>
+    public void Register<T>(DependencyLifetime lifetime = DependencyLifetime.Singleton)
     {
-        Register(typeof(T));
+        Register(typeof(T), lifetime);
     }
 
-    /// <summary>
-    /// Registers a type for dependency injection using itself as the implementation.
-    /// </summary>
-    /// <param name="type">The type to register.</param>
-    public void Register(Type type)
+    /// <inheritdoc/>
+    public void Register(Type type, DependencyLifetime lifetime = DependencyLifetime.Singleton)
     {
-        Register(type, type);
+        Register(type, type, lifetime);
     }
 
-    /// <summary>
-    /// Registers a type and its implementation for dependency injection.
-    /// </summary>
-    /// <typeparam name="TType">The type to register.</typeparam>
-    /// <typeparam name="TImpl">The implementation of the registered type.</typeparam>
-    public void Register<TType, TImpl>()
+    /// <inheritdoc/>
+    public void Register<TType, TImpl>(DependencyLifetime lifetime = DependencyLifetime.Singleton)
     {
-        Register(typeof(TType), typeof(TImpl));
+        Register(typeof(TType), typeof(TImpl), lifetime);
     }
 
-    /// <summary>
-    /// Registers a type with a specific implementation for dependency injection.
-    /// </summary>
-    /// <param name="type">The type to register.</param>
-    /// <param name="impl">The implementation type of the registered type.</param>
-    public void Register(Type type, Type impl)
+    /// <inheritdoc/>
+    public void Register(Type type, Type impl, DependencyLifetime lifetime = DependencyLifetime.Singleton)
     {
         // Retrieve all constructors of the implementation type
         var constructors = impl.GetConstructors(ConstructorFlags);
@@ -106,80 +82,98 @@ public class DependenciesContainer
             throw new InvalidRegistrationException($"The constructor of {impl.FullName} must not have parameters.");
 
         // Create an instance using the constructor
-        Register(type, _ => constructor.Invoke([]));
+        Register(type, _ => constructor.Invoke([]), lifetime);
     }
 
-    /// <summary>
-    /// Registers a specific instance of a type for dependency injection.
-    /// </summary>
-    /// <param name="type">The type to register.</param>
-    /// <param name="instance">The instance to register.</param>
-    public void Register(Type type, object instance)
+    /// <inheritdoc/>
+    public void Register<T>(Func<IDependenciesContainer, T> factory, DependencyLifetime lifetime = DependencyLifetime.Singleton)
     {
-        Register(type, _ => instance);
+        Register(typeof(T), container => factory.Invoke(container) ?? throw new InvalidOperationException("Factory method returned null."), lifetime);
+    }
+
+    /// <inheritdoc/>
+    public void Register(Type type, DependencyFactory factory, DependencyLifetime lifetime = DependencyLifetime.Singleton)
+    {
+        lock (_lock) _registrations[type] = new DependencyRegistration(factory, lifetime);
+    }
+
+    /// <inheritdoc/>
+    public void RegisterSingleton(Type type, object instance)
+    {
+        Register(type, _ => instance, lifetime: DependencyLifetime.Singleton);
     }
     
-    /// <summary>
-    /// Registers a specific instance of a type for dependency injection.
-    /// </summary>
-    /// <typeparam name="T">The type to register.</typeparam>
-    /// <param name="instance">The instance to register.</param>
-    public void Register<T>(object instance)
+    /// <inheritdoc/>
+    public void RegisterSingleton<T>(object instance)
     {
-        Register(typeof(T), _ => instance);
+        Register(typeof(T), _ => instance, lifetime: DependencyLifetime.Singleton);
     }
 
-    /// <summary>
-    /// Registers a factory method for creating an instance of a type.
-    /// </summary>
-    /// <typeparam name="T">The type to register.</typeparam>
-    /// <param name="factory">The factory method to create an instance of the type.</param>
-    public void Register<T>(Func<DependenciesContainer, T> factory)
-    {
-        Register(typeof(T), container => factory.Invoke(container) ?? throw new InvalidOperationException("Factory method returned null."));
-    }
+    #endregion
 
-    /// <summary>
-    /// Registers a factory method for creating an instance of a type.
-    /// </summary>
-    /// <param name="type">The type to register.</param>
-    /// <param name="factory">The factory method to create an instance of the type.</param>
-    public void Register(Type type, Func<DependenciesContainer, object> factory)
+    #region Resolve
+    
+    /// <inheritdoc/>
+    public T Resolve<T>()
+    {
+        return (T) Resolve(typeof(T));
+    }
+    
+    /// <inheritdoc/>
+    public object Resolve(Type type)
     {
         lock (_lock)
         {
-            _factories[type] = factory;
+            if (!_resolutions.Add(type))
+                throw new CircularDependencyException(type);
+
+            try
+            {
+                if (type == typeof(IDependenciesContainer) || type == typeof(DependenciesContainer))
+                    return this;
+
+                if (_instances.TryGetValue(type, out var instance))
+                    return instance;
+
+                if (_registrations.ContainsKey(type))
+                    return Instantiate(type);
+                
+                if (_parent is not null)
+                    return _parent.Resolve(type);
+
+                throw new TypeNotRegisteredException(type);
+            }
+            finally
+            {
+                _resolutions.Remove(type);
+            }
         }
     }
+    
+    #endregion
 
-    /// <summary>
-    /// Resolves a type to its registered instance or creates a new instance.
-    /// </summary>
-    /// <typeparam name="T">The type to resolve.</typeparam>
-    /// <returns>The resolved instance.</returns>
-    public T Resolve<T>()
-    {
-        return (T)Resolve(typeof(T));
-    }
+    #region Inject
 
-    /// <summary>
-    /// Injects dependencies into the fields of an existing object.
-    /// </summary>
-    /// <param name="instance">The object to inject dependencies into.</param>
+    /// <inheritdoc/>
     public void Inject(object instance)
     {
         Inject(instance, autoInject: false);
     }
 
-    /// <summary>
-    /// Instantiates all registered types that have not yet been instantiated.
-    /// </summary>
+    #endregion
+
+    #region Instantiate
+
+    /// <inheritdoc/>
     public void InstantiateAll()
     {
         lock (_lock)
         {
-            foreach (var (type, _) in _factories)
+            foreach (var (type, registration) in _registrations)
             {
+                if (registration.Lifetime == DependencyLifetime.Transient)
+                    continue;
+                
                 if (_instances.ContainsKey(type))
                     continue;
 
@@ -188,32 +182,41 @@ public class DependenciesContainer
         }
     }
 
-    /// <summary>
-    /// Instantiates a specific type.
-    /// </summary>
-    /// <typeparam name="T">The type to instantiate.</typeparam>
-    /// <returns>The instantiated object.</returns>
+    /// <inheritdoc/>
     public object Instantiate<T>()
     {
         return Instantiate(typeof(T));
     }
 
-    /// <summary>
-    /// Instantiates a specific type.
-    /// </summary>
-    /// <param name="type">The type to instantiate.</param>
-    /// <returns>The instantiated object.</returns>
+    /// <inheritdoc/>
     public object Instantiate(Type type)
     {
         lock (_lock)
         {
-            var instance = _factories[type].Invoke(this);
-            _instances[type] = instance;
+            var registration = _registrations[type];
+            var instance = registration.Factory.Invoke(this);
+            
+            if (registration.Lifetime == DependencyLifetime.Singleton)
+                _instances[type] = instance;
+            
             Inject(instance, autoInject: true);
             return instance;
         }
     }
 
+    #endregion
+
+    /// <inheritdoc/>
+    public void Clear()
+    {
+        lock (_lock)
+        {
+            _instances.Clear();
+            _registrations.Clear();
+            _resolutions.Clear();
+        }
+    }
+    
     /// <summary>
     /// Injects dependencies into an instance and performs post-injection processing.
     /// </summary>
@@ -239,55 +242,5 @@ public class DependenciesContainer
         // Call PostInject if the instance implements IPostInject
         if (instance is IPostInject postInject)
             postInject.PostInject();
-    }
-
-    /// <summary>
-    /// Resolves a type to its registered instance or creates a new instance.
-    /// </summary>
-    /// <param name="type">The type to resolve.</param>
-    /// <returns>The resolved instance.</returns>
-    /// <exception cref="CircularDependencyException">Thrown if circular dependencies are detected.</exception>
-    /// <exception cref="TypeNotRegisteredException">Thrown if the type is not registered.</exception>
-    public object Resolve(Type type)
-    {
-        lock (_lock)
-        {
-            if (!_resolutions.Add(type))
-                throw new CircularDependencyException(type);
-
-            try
-            {
-                if (type == typeof(DependenciesContainer))
-                    return this;
-                
-                if (_instances.TryGetValue(type, out var instance))
-                    return instance;
-
-                if (_factories.ContainsKey(type))
-                    return Instantiate(type);
-
-                if (_parent is not null)
-                    return _parent.Resolve(type);
-
-                throw new TypeNotRegisteredException(type);
-            }
-            finally
-            {
-                _resolutions.Remove(type);
-            }
-        }
-    }
-    
-    /// <summary>
-    /// Clears all registered factories and instances in the container.
-    /// </summary>
-    public void Clear()
-    {
-        lock (_lock)
-        {
-            _instances.Clear();
-            _factories.Clear();
-            _resolutions.Clear();
-        }
     }
 }

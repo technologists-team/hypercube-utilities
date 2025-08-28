@@ -1,5 +1,8 @@
-﻿namespace Hypercube.Utilities.Profiling;
+﻿using JetBrains.Annotations;
 
+namespace Hypercube.Utilities.Profiling;
+
+[PublicAPI]
 public class Profiler : IProfiler
 {
     /// <summary>

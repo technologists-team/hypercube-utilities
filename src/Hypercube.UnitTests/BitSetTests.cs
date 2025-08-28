@@ -1,4 +1,5 @@
 ﻿using Hypercube.Utilities;
+using Hypercube.Utilities.Collections;
 
 namespace Hypercube.UnitTests;
 

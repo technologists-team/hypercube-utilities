@@ -23,7 +23,7 @@ public static class TypeExtension
     /// <returns>True if the type is static, false otherwise.</returns>
     public static bool IsStatic(this Type type)
     {
-        return type.IsAbstract && type.IsSealed;
+        return type is { IsAbstract: true, IsSealed: true };
     }
     
     /// <summary>
@@ -33,7 +33,7 @@ public static class TypeExtension
     /// <returns>True if the type is executable (not abstract or interface), false otherwise.</returns>
     public static bool IsExecutableType(this Type type)
     {
-        return (!type.IsAbstract && !type.IsInterface) || type.IsStatic();
+        return type is { IsAbstract: false, IsInterface: false } || type.IsStatic();
     }
     
     /// <summary>
@@ -68,7 +68,7 @@ public static class TypeExtension
     {
         yield return type;
 
-        while (type.BaseType != null)
+        while (type.BaseType is not null)
         {
             type = type.BaseType;
             yield return type;

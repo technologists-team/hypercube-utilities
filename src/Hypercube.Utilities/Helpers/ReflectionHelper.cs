@@ -59,6 +59,7 @@ public static class ReflectionHelper
         
         propertyInfo.SetValue(obj, value);
     }
+    
     /// <summary>
     /// Gets the value of a property in the given object using reflection, based on the provided property name.
     /// </summary>

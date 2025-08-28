@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+using JetBrains.Annotations;
 
 namespace Hypercube.Utilities.References;
 
@@ -8,6 +9,7 @@ namespace Hypercube.Utilities.References;
 /// <remarks>
 /// Should be used whenever we want to pass value by ref.
 /// </remarks>
+[PublicAPI]
 [StructLayout(LayoutKind.Sequential)]
 public sealed class UnitBox
 {

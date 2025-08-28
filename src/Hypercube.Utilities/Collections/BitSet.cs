@@ -1,7 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace Hypercube.Utilities;
+namespace Hypercube.Utilities.Collections;
 
 /// <summary>
 /// A bit set that supports an arbitrary number of bits beyond 64.
