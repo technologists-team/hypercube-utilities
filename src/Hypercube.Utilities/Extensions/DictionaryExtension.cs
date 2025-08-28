@@ -1,7 +1,9 @@
 ﻿using System.Runtime.InteropServices;
+using JetBrains.Annotations;
 
 namespace Hypercube.Utilities.Extensions;
 
+[PublicAPI]
 public static class DictionaryExtension
 {
     public static TValue GetOrInstantiate<TKey, TValue>(this Dictionary<TKey, TValue> dict, TKey key)
