@@ -83,6 +83,32 @@ public sealed class DependenciesContainerTests
     }
     
     [Test]
+    public void InjectProperty()
+    {
+        var container = new DependenciesContainer();
+        var instance = new DependentPropertyClass();
+        
+        container.Register<IService, Service>();
+        container.Inject(instance);
+        
+        Assert.That(instance.Service, Is.Not.Null);
+        Assert.That(instance.Service, Is.TypeOf<Service>());
+    }
+    
+    [Test]
+    public void InjectMethod()
+    {
+        var container = new DependenciesContainer();
+        var instance = new DependentMethodClass();
+        
+        container.Register<IService, Service>();
+        container.Inject(instance);
+        
+        Assert.That(instance.Service, Is.Not.Null);
+        Assert.That(instance.Service, Is.TypeOf<Service>());
+    }
+    
+    [Test]
     public void TransientRegistration()
     {
         var container = new DependenciesContainer();
@@ -180,9 +206,27 @@ public sealed class DependenciesContainerTests
     private sealed class DependentClass
     {
         [SuppressMessage("ReSharper", "MemberHidesStaticFromOuterClass")]
-        [SuppressMessage("Compiler", "CS0649")]
         [UsedImplicitly, Dependency]
         public readonly IService? Service;
+    }
+
+    private sealed class DependentPropertyClass
+    {
+        [SuppressMessage("ReSharper", "MemberHidesStaticFromOuterClass")]
+        [UsedImplicitly, Dependency]
+        public IService? Service { get; private set; }
+    }
+    
+    private sealed class DependentMethodClass
+    {
+        [SuppressMessage("ReSharper", "MemberHidesStaticFromOuterClass")]
+        public IService? Service { get; private set; }
+
+        [UsedImplicitly, Dependency]
+        public void Method(IService service)
+        {
+            Service = service;
+        }
     }
 
     [UsedImplicitly]

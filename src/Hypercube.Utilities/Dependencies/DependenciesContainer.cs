@@ -205,8 +205,7 @@ public class DependenciesContainer : IDependenciesContainer
             throw new InvalidOperationException("Instance cannot be null.");
 
         var type = instance.GetType();
-
-        // Inject dependencies into fields marked with DependencyAttribute
+        
         foreach (var field in type.GetAllFields())
         {
             if (!Attribute.IsDefined(field, typeof(DependencyAttribute)))
@@ -215,6 +214,30 @@ public class DependenciesContainer : IDependenciesContainer
             field.SetValue(instance, Resolve(field.FieldType, instance));
         }
 
+        foreach (var property in type.GetProperties())
+        {
+            if (!Attribute.IsDefined(property, typeof(DependencyAttribute)))
+                continue;
+            
+            if (!property.CanWrite)
+                continue;
+            
+            property.SetValue(instance, Resolve(property.PropertyType, instance));
+        }
+
+        foreach (var method in type.GetMethods())
+        {
+            if (!Attribute.IsDefined(method, typeof(DependencyAttribute)))
+                continue;
+            
+            var parameters = method.GetParameters();
+            var parametersResolved = parameters
+                .Select(param => Resolve(param.ParameterType, instance))
+                .ToArray();
+            
+            method.Invoke(instance, parametersResolved);
+        }
+        
         // Call PostInject if the instance implements IPostInject
         if (instance is IPostInject postInject)
             postInject.PostInject();
