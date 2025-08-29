@@ -223,7 +223,7 @@ public sealed class DependenciesContainerTests
         public IService? Service { get; private set; }
 
         [UsedImplicitly, Dependency]
-        public void Method(IService service)
+        private void Method(IService service)
         {
             Service = service;
         }

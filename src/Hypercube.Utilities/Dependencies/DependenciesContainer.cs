@@ -192,7 +192,7 @@ public class DependenciesContainer : IDependenciesContainer
             _resolutions.Clear();
         }
     }
-    
+
     /// <summary>
     /// Injects dependencies into an instance and performs post-injection processing.
     /// </summary>
@@ -201,12 +201,14 @@ public class DependenciesContainer : IDependenciesContainer
     /// <exception cref="InvalidOperationException">Thrown if the instance is null.</exception>
     private void Inject(object instance, bool autoInject)
     {
+        const BindingFlags binding = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance;
+        
         if (instance is null)
             throw new InvalidOperationException("Instance cannot be null.");
 
         var type = instance.GetType();
-        
-        foreach (var field in type.GetAllFields())
+
+        foreach (var field in type.GetAllFields(binding))
         {
             if (!Attribute.IsDefined(field, typeof(DependencyAttribute)))
                 continue;
@@ -214,18 +216,18 @@ public class DependenciesContainer : IDependenciesContainer
             field.SetValue(instance, Resolve(field.FieldType, instance));
         }
 
-        foreach (var property in type.GetProperties())
+        foreach (var property in type.GetProperties(binding))
         {
             if (!Attribute.IsDefined(property, typeof(DependencyAttribute)))
                 continue;
-            
+
             if (!property.CanWrite)
                 continue;
-            
+
             property.SetValue(instance, Resolve(property.PropertyType, instance));
         }
 
-        foreach (var method in type.GetMethods())
+        foreach (var method in type.GetMethods(binding))
         {
             if (!Attribute.IsDefined(method, typeof(DependencyAttribute)))
                 continue;
