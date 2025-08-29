@@ -9,7 +9,7 @@ namespace Hypercube.UnitTests.Dependencies;
 public sealed class DependenciesContainerTests
 {
     [Test]
-    public void Registe()
+    public void Register()
     {
         var container = new DependenciesContainer();
         
