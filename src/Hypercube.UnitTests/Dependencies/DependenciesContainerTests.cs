@@ -70,10 +70,10 @@ public sealed class DependenciesContainerTests
     }
 
     [Test]
-    public void Inject()
+    public void InjectField()
     {
         var container = new DependenciesContainer();
-        var instance = new DependentClass();
+        var instance = new DependentFieldClass();
         
         container.Register<IService, Service>();
         container.Inject(instance);
@@ -103,6 +103,20 @@ public sealed class DependenciesContainerTests
         
         container.Register<IService, Service>();
         container.Inject(instance);
+        
+        Assert.That(instance.Service, Is.Not.Null);
+        Assert.That(instance.Service, Is.TypeOf<Service>());
+    }
+    
+    [Test]
+    public void InjectConstructor()
+    {
+        var container = new DependenciesContainer();
+        
+        container.Register<IService, Service>();
+        container.Register<DependentConstructorClass>();
+        
+        var instance = container.Resolve<DependentConstructorClass>();
         
         Assert.That(instance.Service, Is.Not.Null);
         Assert.That(instance.Service, Is.TypeOf<Service>());
@@ -187,7 +201,7 @@ public sealed class DependenciesContainerTests
     public void InjectedDependencyShouldNotInjectThemself()
     {
         var container = new DependenciesContainer();
-        var instance = new DependentClass();
+        var instance = new DependentFieldClass();
         
         container.Register<IService>((_, injected) =>
         {
@@ -203,7 +217,7 @@ public sealed class DependenciesContainerTests
     private interface IService;
     private class Service : IService;
 
-    private sealed class DependentClass
+    private sealed class DependentFieldClass
     {
         [SuppressMessage("ReSharper", "MemberHidesStaticFromOuterClass")]
         [UsedImplicitly, Dependency]
@@ -228,7 +242,18 @@ public sealed class DependenciesContainerTests
             Service = service;
         }
     }
+    
+    private sealed class DependentConstructorClass
+    {
+        [SuppressMessage("ReSharper", "MemberHidesStaticFromOuterClass")]
+        public readonly IService? Service;
 
+        public DependentConstructorClass(IService service)
+        {
+            Service = service;
+        }
+    }
+    
     [UsedImplicitly]
     private sealed class A
     {

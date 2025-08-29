@@ -43,9 +43,9 @@ public interface IDependenciesContainer
     /// Registers a type with a specific implementation for dependency injection.
     /// </summary>
     /// <param name="type">The service type to register.</param>
-    /// <param name="impl">The implementation type of the service.</param>
+    /// <param name="implementation">The implementation type of the service.</param>
     /// <param name="lifetime">The lifetime of the registered dependency.</param>
-    void Register(Type type, Type impl, DependencyLifetime lifetime = DependencyLifetime.Singleton);
+    void Register(Type type, Type implementation, DependencyLifetime lifetime = DependencyLifetime.Singleton);
 
     /// <summary>
     /// Registers a factory method for creating an instance of a type.

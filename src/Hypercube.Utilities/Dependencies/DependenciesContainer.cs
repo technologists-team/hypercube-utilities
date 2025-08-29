@@ -71,23 +71,23 @@ public class DependenciesContainer : IDependenciesContainer
     }
 
     /// <inheritdoc/>
-    public void Register(Type type, Type impl, DependencyLifetime lifetime = DependencyLifetime.Singleton)
+    public void Register(Type type, Type implementation, DependencyLifetime lifetime = DependencyLifetime.Singleton)
     {
-        // Retrieve all constructors of the implementation type
-        var constructors = impl.GetConstructors(ConstructorFlags);
-        if (constructors.Length != 1)
-            throw new InvalidRegistrationException($"The type {impl.FullName} must have exactly one constructor.");
+        var constructors = implementation.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+        var constructor = constructors
+            .OrderByDescending(c => c.GetParameters().Length)
+            .First();
 
-        // Ensure there is exactly one constructor
-        var constructor = constructors[0];
-        var constructorParams = constructor.GetParameters();
+        Register(type, Factory, lifetime);
+        return;
 
-        // Check for any constructor parameters
-        if (constructorParams.Length != 0)
-            throw new InvalidRegistrationException($"The constructor of {impl.FullName} must not have parameters.");
-
-        // Create an instance using the constructor
-        Register(type, (_, _) => constructor.Invoke([]), lifetime);
+        object Factory(IDependenciesContainer container, object? _)
+        {
+            var parameters = constructor.GetParameters();
+            return constructor.Invoke(parameters.Length == 0
+                ? []
+                : parameters.Select(p => container.Resolve(p.ParameterType)).ToArray());
+        }
     }
 
     /// <inheritdoc/>
