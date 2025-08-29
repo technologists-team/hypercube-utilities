@@ -16,7 +16,7 @@ public sealed class DependenciesContainerTests
         Assert.DoesNotThrow(() =>
         {
             container.Register<IService, Service>();
-            container.Instantiate<IService>();
+            container.Resolve<IService>();
         });
         
         container.Clear();
@@ -24,7 +24,7 @@ public sealed class DependenciesContainerTests
         Assert.DoesNotThrow(() =>
         {
             container.Register<IService>(_ => new Service());
-            container.InstantiateAll();
+            container.ResolveAll();
         });
     }
 
@@ -114,9 +114,8 @@ public sealed class DependenciesContainerTests
         var container = new DependenciesContainer();
         
         container.Register<IService, Service>();
-        container.Register<DependentConstructorClass>();
         
-        var instance = container.Resolve<DependentConstructorClass>();
+        var instance = container.Instantiate<DependentConstructorClass>();
         
         Assert.That(instance.Service, Is.Not.Null);
         Assert.That(instance.Service, Is.TypeOf<Service>());
@@ -174,31 +173,14 @@ public sealed class DependenciesContainerTests
         var container = new DependenciesContainer();
         container.Register<Service>(DependencyLifetime.Transient);
 
-        var a = container.Instantiate<Service>();
-        var b = container.Instantiate<Service>();
+        var a = container.Resolve<Service>();
+        var b = container.Resolve<Service>();
 
         Assert.That(a, Is.Not.SameAs(b));
     }
 
     [Test]
-    public void InjectedDependencyShouldInjectThemself()
-    {
-        var container = new DependenciesContainer();
-        
-        container.Register<IService>((_, injected) =>
-        {
-            Assert.That(injected, Is.Null);
-            return new Service();
-        });
-
-        var service = container.Instantiate<IService>();
-        
-        Assert.That(service, Is.TypeOf<Service>());
-        Assert.That(service, Is.SameAs(container.Resolve<IService>()));
-    }
-    
-    [Test]
-    public void InjectedDependencyShouldNotInjectThemself()
+    public void Injected()
     {
         var container = new DependenciesContainer();
         var instance = new DependentFieldClass();
@@ -212,6 +194,23 @@ public sealed class DependenciesContainerTests
         container.Inject(instance);
 
         Assert.That(instance.Service, Is.TypeOf<Service>());
+    }
+
+    [Test]
+    public void InjectedNull()
+    {
+        var container = new DependenciesContainer();
+        
+        container.Register<IService>((_, injected) =>
+        {
+            Assert.That(injected, Is.Null);
+            return new Service();
+        });
+
+        var service = container.Resolve<IService>();
+        
+        Assert.That(service, Is.TypeOf<Service>());
+        Assert.That(service, Is.SameAs(container.Resolve<IService>()));
     }
 
     private interface IService;
@@ -243,6 +242,7 @@ public sealed class DependenciesContainerTests
         }
     }
     
+    [UsedImplicitly]
     private sealed class DependentConstructorClass
     {
         [SuppressMessage("ReSharper", "MemberHidesStaticFromOuterClass")]

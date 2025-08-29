@@ -136,6 +136,24 @@ public class DependenciesContainer : IDependenciesContainer
         return Resolve(type, null);
     }
     
+    /// <inheritdoc/>
+    public void ResolveAll()
+    {
+        lock (_lock)
+        {
+            foreach (var (type, registration) in _registrations)
+            {
+                if (registration.Lifetime == DependencyLifetime.Transient)
+                    continue;
+                
+                if (_instances.ContainsKey(type))
+                    continue;
+
+                Resolve(type);
+            }
+        }
+    }
+    
     #endregion
 
     #region Inject
@@ -149,25 +167,7 @@ public class DependenciesContainer : IDependenciesContainer
     #endregion
 
     #region Instantiate
-
-    /// <inheritdoc/>
-    public void InstantiateAll()
-    {
-        lock (_lock)
-        {
-            foreach (var (type, registration) in _registrations)
-            {
-                if (registration.Lifetime == DependencyLifetime.Transient)
-                    continue;
-                
-                if (_instances.ContainsKey(type))
-                    continue;
-
-                Instantiate(type);
-            }
-        }
-    }
-
+    
     /// <inheritdoc/>
     public T Instantiate<T>()
     {
@@ -177,11 +177,19 @@ public class DependenciesContainer : IDependenciesContainer
     /// <inheritdoc/>
     public object Instantiate(Type type)
     {
-        return Instantiate(type, null);
+        var constructors = type.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+        var constructor = constructors
+            .OrderByDescending(c => c.GetParameters().Length)
+            .First();
+
+        var parameters = constructor.GetParameters();
+        return constructor.Invoke(parameters.Length == 0
+            ? []
+            : parameters.Select(p => Resolve(p.ParameterType)).ToArray());
     }
 
     #endregion
-
+    
     /// <inheritdoc/>
     public void Clear()
     {
@@ -261,7 +269,7 @@ public class DependenciesContainer : IDependenciesContainer
                     return instance;
 
                 if (_registrations.ContainsKey(type))
-                    return Instantiate(type, injected);
+                    return Activate(type, injected);
                 
                 if (_parent is not null)
                     return _parent.Resolve(type);
@@ -274,8 +282,8 @@ public class DependenciesContainer : IDependenciesContainer
             }
         }
     }
-    
-    private object Instantiate(Type type, object? injected)
+
+    private object Activate(Type type, object? injected)
     {
         lock (_lock)
         {

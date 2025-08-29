@@ -105,6 +105,14 @@ public interface IDependenciesContainer
     /// <exception cref="TypeNotRegisteredException">Thrown if the type is not registered.</exception>
     object Resolve(Type type);
 
+    /// <summary>
+    /// Resolves all registered types that have not yet been resolved.
+    /// </summary>
+    /// <remarks>
+    /// Completely ignores <see cref="DependencyLifetime.Transient"/> dependencies.
+    /// </remarks>
+    void ResolveAll();
+    
     #endregion
 
     #region Inject
@@ -116,28 +124,33 @@ public interface IDependenciesContainer
     void Inject(object instance);
 
     #endregion
-
+    
     #region Instantiate
 
     /// <summary>
-    /// Instantiates all registered types that have not yet been instantiated.
-    /// </summary>
-    void InstantiateAll();
-
-    /// <summary>
-    /// Instantiates a specific type.
+    /// Instantiates a specific type by resolving its constructor and dependencies.
     /// </summary>
     /// <typeparam name="T">The type to instantiate.</typeparam>
-    /// <returns>The instantiated object.</returns>
+    /// <returns>The instantiated object of type <typeparamref name="T"/>.</returns>
+    /// <remarks>
+    /// This method resolves the constructor of the specified type <typeparamref name="T"/> and 
+    /// injects its dependencies automatically. If the constructor has parameters, they will be resolved 
+    /// from the container. If no constructor parameters are required, the type will be instantiated directly.
+    /// </remarks>
     T Instantiate<T>();
 
     /// <summary>
-    /// Instantiates a specific type.
+    /// Instantiates a specific type by resolving its constructor and dependencies.
     /// </summary>
     /// <param name="type">The type to instantiate.</param>
-    /// <returns>The instantiated object.</returns>
+    /// <returns>The instantiated object of the specified <paramref name="type"/>.</returns>
+    /// <remarks>
+    /// This method resolves the constructor of the specified type and injects its dependencies automatically. 
+    /// If the constructor has parameters, they will be resolved from the container. If no constructor parameters 
+    /// are required, the type will be instantiated directly. This method is used for generic instantiation.
+    /// </remarks>
     object Instantiate(Type type);
-
+    
     #endregion
 
     /// <summary>
