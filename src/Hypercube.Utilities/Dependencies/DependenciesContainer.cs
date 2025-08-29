@@ -18,7 +18,12 @@ public class DependenciesContainer : IDependenciesContainer
     /// The parent container for cascading dependency resolution.
     /// </summary>
     private readonly DependenciesContainer? _parent;
-
+    
+    /// <summary>
+    /// A dictionary that stores the registered dependencies by their type.
+    /// Each type is associated with a <see cref="DependencyRegistration"/> containing
+    /// information about how to resolve and instantiate the dependency, along with its lifetime.
+    /// </summary>
     private readonly Dictionary<Type, DependencyRegistration> _registrations = new();
 
     /// <summary>

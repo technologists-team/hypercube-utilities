@@ -1,10 +1,18 @@
-﻿namespace Hypercube.Utilities.Dependencies.Exceptions;
+﻿using JetBrains.Annotations;
+
+namespace Hypercube.Utilities.Dependencies.Exceptions;
 
 /// <summary>
 /// Represents errors related to resolving unregistered types in the container.
 /// </summary>
 public class TypeNotRegisteredException : Exception
 {
+    /// <summary>
+    /// Gets the unregistered type being resolved.
+    /// </summary>
+    [PublicAPI]
+    public readonly Type Type;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="TypeNotRegisteredException"/> class.
     /// </summary>
@@ -14,9 +22,4 @@ public class TypeNotRegisteredException : Exception
     {
         Type = type;
     }
-
-    /// <summary>
-    /// Gets the unregistered type being resolved.
-    /// </summary>
-    public Type Type { get; }
 }

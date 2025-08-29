@@ -12,6 +12,7 @@ namespace Hypercube.Utilities.Dependencies;
 /// </para>
 /// </remarks>
 /// <seealso cref="DependencyAttribute"/>
+/// <seealso cref="IPostInject"/>
 public interface IDependenciesContainer
 {
     #region Register
