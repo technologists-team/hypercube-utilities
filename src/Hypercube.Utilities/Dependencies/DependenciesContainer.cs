@@ -82,13 +82,19 @@ public class DependenciesContainer : IDependenciesContainer
             throw new InvalidRegistrationException($"The constructor of {impl.FullName} must not have parameters.");
 
         // Create an instance using the constructor
-        Register(type, _ => constructor.Invoke([]), lifetime);
+        Register(type, (_, _) => constructor.Invoke([]), lifetime);
     }
 
     /// <inheritdoc/>
     public void Register<T>(Func<IDependenciesContainer, T> factory, DependencyLifetime lifetime = DependencyLifetime.Singleton)
     {
-        Register(typeof(T), container => factory.Invoke(container) ?? throw new InvalidOperationException("Factory method returned null."), lifetime);
+        Register(typeof(T), (container, _) => factory.Invoke(container) ?? throw new InvalidOperationException("Factory method returned null."), lifetime);
+    }
+    
+    /// <inheritdoc/>
+    public void Register<T>(Func<IDependenciesContainer, object?, T> factory, DependencyLifetime lifetime = DependencyLifetime.Singleton)
+    {
+        Register(typeof(T), (container, injected) => factory.Invoke(container, injected) ?? throw new InvalidOperationException("Factory method returned null."), lifetime);
     }
 
     /// <inheritdoc/>
@@ -100,13 +106,13 @@ public class DependenciesContainer : IDependenciesContainer
     /// <inheritdoc/>
     public void RegisterSingleton(Type type, object instance)
     {
-        Register(type, _ => instance, lifetime: DependencyLifetime.Singleton);
+        Register(type, (_, _) => instance, lifetime: DependencyLifetime.Singleton);
     }
     
     /// <inheritdoc/>
     public void RegisterSingleton<T>(object instance)
     {
-        Register(typeof(T), _ => instance, lifetime: DependencyLifetime.Singleton);
+        Register(typeof(T), (_, _) => instance, lifetime: DependencyLifetime.Singleton);
     }
 
     #endregion
@@ -122,32 +128,7 @@ public class DependenciesContainer : IDependenciesContainer
     /// <inheritdoc/>
     public object Resolve(Type type)
     {
-        lock (_lock)
-        {
-            if (!_resolutions.Add(type))
-                throw new CircularDependencyException(type);
-
-            try
-            {
-                if (type == typeof(IDependenciesContainer) || type == typeof(DependenciesContainer))
-                    return this;
-
-                if (_instances.TryGetValue(type, out var instance))
-                    return instance;
-
-                if (_registrations.ContainsKey(type))
-                    return Instantiate(type);
-                
-                if (_parent is not null)
-                    return _parent.Resolve(type);
-
-                throw new TypeNotRegisteredException(type);
-            }
-            finally
-            {
-                _resolutions.Remove(type);
-            }
-        }
+        return Resolve(type, null);
     }
     
     #endregion
@@ -183,25 +164,15 @@ public class DependenciesContainer : IDependenciesContainer
     }
 
     /// <inheritdoc/>
-    public object Instantiate<T>()
+    public T Instantiate<T>()
     {
-        return Instantiate(typeof(T));
+        return (T) Instantiate(typeof(T));
     }
 
     /// <inheritdoc/>
     public object Instantiate(Type type)
     {
-        lock (_lock)
-        {
-            var registration = _registrations[type];
-            var instance = registration.Factory.Invoke(this);
-            
-            if (registration.Lifetime == DependencyLifetime.Singleton)
-                _instances[type] = instance;
-            
-            Inject(instance, autoInject: true);
-            return instance;
-        }
+        return Instantiate(type, null);
     }
 
     #endregion
@@ -236,11 +207,56 @@ public class DependenciesContainer : IDependenciesContainer
             if (!Attribute.IsDefined(field, typeof(DependencyAttribute)))
                 continue;
 
-            field.SetValue(instance, Resolve(field.FieldType));
+            field.SetValue(instance, Resolve(field.FieldType, instance));
         }
 
         // Call PostInject if the instance implements IPostInject
         if (instance is IPostInject postInject)
             postInject.PostInject();
+    }
+
+    private object Resolve(Type type, object? injected)
+    {
+        lock (_lock)
+        {
+            if (!_resolutions.Add(type))
+                throw new CircularDependencyException(type);
+
+            try
+            {
+                if (type == typeof(IDependenciesContainer) || type == typeof(DependenciesContainer))
+                    return this;
+
+                if (_instances.TryGetValue(type, out var instance))
+                    return instance;
+
+                if (_registrations.ContainsKey(type))
+                    return Instantiate(type, injected);
+                
+                if (_parent is not null)
+                    return _parent.Resolve(type);
+
+                throw new TypeNotRegisteredException(type);
+            }
+            finally
+            {
+                _resolutions.Remove(type);
+            }
+        }
+    }
+    
+    private object Instantiate(Type type, object? injected)
+    {
+        lock (_lock)
+        {
+            var registration = _registrations[type];
+            var instance = registration.Factory.Invoke(this, injected);
+            
+            if (registration.Lifetime == DependencyLifetime.Singleton)
+                _instances[type] = instance;
+            
+            Inject(instance, autoInject: true);
+            return instance;
+        }
     }
 }

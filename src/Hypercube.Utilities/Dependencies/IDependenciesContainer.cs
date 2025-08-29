@@ -57,6 +57,14 @@ public interface IDependenciesContainer
     /// <summary>
     /// Registers a factory method for creating an instance of a type.
     /// </summary>
+    /// <typeparam name="T">The service type to register.</typeparam>
+    /// <param name="factory">The factory method used to create an instance of the service.</param>
+    /// <param name="lifetime">The lifetime of the registered dependency.</param>
+    void Register<T>(Func<IDependenciesContainer, object?, T> factory, DependencyLifetime lifetime = DependencyLifetime.Singleton);
+    
+    /// <summary>
+    /// Registers a factory method for creating an instance of a type.
+    /// </summary>
     /// <param name="type">The service type to register.</param>
     /// <param name="factory">The factory delegate used to create an instance of the service.</param>
     /// <param name="lifetime">The lifetime of the registered dependency.</param>
@@ -120,7 +128,7 @@ public interface IDependenciesContainer
     /// </summary>
     /// <typeparam name="T">The type to instantiate.</typeparam>
     /// <returns>The instantiated object.</returns>
-    object Instantiate<T>();
+    T Instantiate<T>();
 
     /// <summary>
     /// Instantiates a specific type.

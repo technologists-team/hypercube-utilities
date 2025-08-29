@@ -9,7 +9,7 @@ namespace Hypercube.UnitTests.Dependencies;
 public sealed class DependenciesContainerTests
 {
     [Test]
-    public void RegisterTest()
+    public void Registe()
     {
         var container = new DependenciesContainer();
         
@@ -29,7 +29,7 @@ public sealed class DependenciesContainerTests
     }
 
     [Test]
-    public void ClearTest()
+    public void Clear()
     {
         var container = new DependenciesContainer();
         
@@ -41,7 +41,7 @@ public sealed class DependenciesContainerTests
     }
     
     [Test]
-    public void ResolveTest()
+    public void Resolve()
     {
         var container = new DependenciesContainer();
         
@@ -59,7 +59,7 @@ public sealed class DependenciesContainerTests
     }
 
     [Test]
-    public void InstanceTest()
+    public void Instance()
     {
         var container = new DependenciesContainer();
         var instance = new Service();
@@ -70,7 +70,7 @@ public sealed class DependenciesContainerTests
     }
 
     [Test]
-    public void InjectTest()
+    public void Inject()
     {
         var container = new DependenciesContainer();
         var instance = new DependentClass();
@@ -83,7 +83,7 @@ public sealed class DependenciesContainerTests
     }
     
     [Test]
-    public void TransientRegistrationTest()
+    public void TransientRegistration()
     {
         var container = new DependenciesContainer();
         container.Register<IService, Service>(DependencyLifetime.Transient);
@@ -101,7 +101,7 @@ public sealed class DependenciesContainerTests
     }
 
     [Test]
-    public void TransientFactoryTest()
+    public void TransientFactory()
     {
         var container = new DependenciesContainer();
         var counter = 0;
@@ -132,13 +132,46 @@ public sealed class DependenciesContainerTests
     public void TransientDoesNotCacheInstances()
     {
         var container = new DependenciesContainer();
-
         container.Register<Service>(DependencyLifetime.Transient);
 
         var a = container.Instantiate<Service>();
         var b = container.Instantiate<Service>();
 
         Assert.That(a, Is.Not.SameAs(b));
+    }
+
+    [Test]
+    public void InjectedDependencyShouldInjectThemself()
+    {
+        var container = new DependenciesContainer();
+        
+        container.Register<IService>((_, injected) =>
+        {
+            Assert.That(injected, Is.Null);
+            return new Service();
+        });
+
+        var service = container.Instantiate<IService>();
+        
+        Assert.That(service, Is.TypeOf<Service>());
+        Assert.That(service, Is.SameAs(container.Resolve<IService>()));
+    }
+    
+    [Test]
+    public void InjectedDependencyShouldNotInjectThemself()
+    {
+        var container = new DependenciesContainer();
+        var instance = new DependentClass();
+        
+        container.Register<IService>((_, injected) =>
+        {
+            Assert.That(injected, Is.SameAs(instance));
+            return new Service();
+        });
+
+        container.Inject(instance);
+
+        Assert.That(instance.Service, Is.TypeOf<Service>());
     }
 
     private interface IService;
