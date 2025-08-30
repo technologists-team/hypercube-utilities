@@ -11,6 +11,8 @@ public interface ILogger
     /// </summary>
     LogLevel LogLevel { get; set; }
 
+    void Echo(string message);
+
     /// <summary>
     /// Logs a simple text message.
     /// </summary>
@@ -34,8 +36,6 @@ public interface ILogger
     /// <param name="message">Optional additional message.</param>
     void Log(LogLevel level, Exception exception, string message = "");
 
-    void Echo(string message);
-    
     /// <summary>
     /// Logs a trace-level message.
     /// </summary>
@@ -63,6 +63,12 @@ public interface ILogger
     /// <summary>
     /// Logs an error along with an optional message and exception.
     /// </summary>
+    /// <param name="message">The error message to log.</param>
+    void Error(string message);
+
+    /// <summary>
+    /// Logs an error along with an optional message and exception.
+    /// </summary>
     /// <param name="exception">The exception to log.</param>
     /// <param name="message">Optional additional message.</param>
     void Error(Exception exception, string message = "");
@@ -72,4 +78,11 @@ public interface ILogger
     /// </summary>
     /// <param name="message">The critical message to log.</param>
     void Critical(string message);
+
+    /// <summary>
+    /// Logs a critical-level message and exception.
+    /// </summary>
+    /// <param name="exception">The exception to log.</param>
+    /// <param name="message">Optional additional message.</param>
+    void Critical(Exception exception, string message = "");
 }

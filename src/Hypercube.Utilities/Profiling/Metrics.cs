@@ -1,9 +1,12 @@
-﻿namespace Hypercube.Utilities.Profiling;
+﻿using JetBrains.Annotations;
+
+namespace Hypercube.Utilities.Profiling;
 
 /// <summary>
 /// Represents the metrics that can be measured by the profiler.
 /// </summary>
 [Flags]
+[PublicAPI]
 public enum Metrics
 {
     /// <summary>
