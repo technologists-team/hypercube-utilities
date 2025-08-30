@@ -1,7 +1,6 @@
-﻿using Hypercube.Utilities;
-using Hypercube.Utilities.Collections;
+﻿using Hypercube.Utilities.Collections;
 
-namespace Hypercube.UnitTests;
+namespace Hypercube.UnitTests.Collections;
 
 [TestFixture]
 public sealed class BitSetTests
