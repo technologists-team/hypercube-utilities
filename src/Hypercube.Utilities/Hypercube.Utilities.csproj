@@ -20,6 +20,7 @@
         <None Include="../../README.md" Pack="true" PackagePath="" Visible="false"/>
         <None Include="../../LICENSE" Pack="true" PackagePath="" Visible="false"/>
         <None Include="../../assets/logo.png" Pack="true" PackagePath="assets/" Visible="false" />
+        <None Include="../../assets/card.svg" Pack="true" PackagePath="assets/" Visible="false" />
     </ItemGroup>
 
     <ItemGroup>
