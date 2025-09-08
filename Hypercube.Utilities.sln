@@ -1,8 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hypercube.Utilities", "Hypercube.Utilities\Hypercube.Utilities.csproj", "{C33D83E9-817B-4D64-B29E-0ED81DA83AF2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hypercube.Utilities", "src\Hypercube.Utilities\Hypercube.Utilities.csproj", "{C33D83E9-817B-4D64-B29E-0ED81DA83AF2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hypercube.UnitTests", "Hypercube.UnitTests\Hypercube.UnitTests.csproj", "{B7BF24C7-5A5C-4C26-86B3-A678B0C75C25}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hypercube.UnitTests", "src\Hypercube.UnitTests\Hypercube.UnitTests.csproj", "{B7BF24C7-5A5C-4C26-86B3-A678B0C75C25}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
