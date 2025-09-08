@@ -191,7 +191,7 @@ public static class ReflectionHelper
     /// <typeparam name="T">The type of the attributes to retrieve.</typeparam>
     /// <param name="method">The method to inspect.</param>
     /// <returns>A list of <see cref="T"/> attributes found on the method.</returns>
-    public static List<T> GetAllAttributes<T>(MethodInfo method)
+    public static List<T> GetAttributes<T>(MethodInfo method)
         where T : Attribute
     {
         return method.GetCustomAttributes()
@@ -204,12 +204,41 @@ public static class ReflectionHelper
     /// </summary>
     /// <param name="parent">The parent type to search for subclasses of.</param>
     /// <returns>A list of <see cref="Type"/> objects representing the subclasses of the specified parent type.</returns>
-    public static List<Type> GetAllInstantiableSubclassOf(Type parent)
+    public static List<Type> GetInstantiableSubclasses(Type parent)
     {
         var assemblies = AppDomain.CurrentDomain.GetAssemblies();
         return (from assembly in assemblies
             from type in assembly.GetTypes()
             where type.IsAssignableTo(parent) && type.IsExecutableType() // Only executable types
             select type).ToList();
+    }
+    
+    /// <summary>
+    /// Retrieves all instantiable subclasses of a specified parent type, from a specific assembly.
+    /// </summary>
+    /// <param name="assembly">The assembly to search in.</param>
+    /// <param name="parent">The parent type to search for subclasses of.</param>
+    /// <returns>A list of <see cref="Type"/> objects representing the subclasses of the specified parent type.</returns>
+    public static List<Type> GetInstantiableSubclasses(Assembly assembly, Type parent)
+    {
+        return (from type in assembly.GetTypes()
+            where type.IsAssignableTo(parent) && type.IsExecutableType()
+            select type).ToList();
+    }
+    
+    /// <summary>
+    ///  Retrieves all instantiable subclasses of <typeparamref name="T"/> from all loaded assemblies.
+    /// </summary>
+    public static List<Type> GetInstantiableSubclasses<T>()
+    {
+        return GetInstantiableSubclasses(typeof(T));
+    }
+
+    /// <summary>
+    /// Retrieves all instantiable subclasses of <typeparamref name="T"/> from a specific assembly.
+    /// </summary>
+    public static List<Type> GetInstantiableSubclasses<T>(Assembly assembly)
+    {
+        return GetInstantiableSubclasses(assembly, typeof(T));
     }
 }
