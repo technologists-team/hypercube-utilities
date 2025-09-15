@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Runtime.CompilerServices;
 using Hypercube.Utilities.Dependencies.Exceptions;
 using Hypercube.Utilities.Extensions;
 using JetBrains.Annotations;
@@ -83,10 +84,14 @@ public class DependenciesContainer : IDependenciesContainer
 
         object Factory(IDependenciesContainer container, object? _)
         {
+            var instance = RuntimeHelpers.GetUninitializedObject(implementation);
+            
             var parameters = constructor.GetParameters();
-            return constructor.Invoke(parameters.Length == 0
+            constructor.Invoke(instance, parameters.Length == 0
                 ? []
                 : parameters.Select(p => container.Resolve(p.ParameterType)).ToArray());
+            
+            return instance;
         }
     }
 
@@ -177,15 +182,23 @@ public class DependenciesContainer : IDependenciesContainer
     /// <inheritdoc/>
     public object Instantiate(Type type)
     {
+        var instance = RuntimeHelpers.GetUninitializedObject(type);
+        if (instance is null)
+            throw new MissingMemberException($"Cannot instantiate type {type.FullName}");
+        
+        Inject(instance, autoInject: true);
+        
         var constructors = type.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
         var constructor = constructors
             .OrderByDescending(c => c.GetParameters().Length)
             .First();
 
         var parameters = constructor.GetParameters();
-        return constructor.Invoke(parameters.Length == 0
+        constructor.Invoke(instance, parameters.Length == 0
             ? []
             : parameters.Select(p => Resolve(p.ParameterType)).ToArray());
+
+        return instance;
     }
 
     #endregion
@@ -247,10 +260,6 @@ public class DependenciesContainer : IDependenciesContainer
             
             method.Invoke(instance, parametersResolved);
         }
-        
-        // Call PostInject if the instance implements IPostInject
-        if (instance is IPostInject postInject)
-            postInject.PostInject();
     }
 
     private object Resolve(Type type, object? injected)

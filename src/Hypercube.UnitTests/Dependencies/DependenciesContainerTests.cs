@@ -73,7 +73,7 @@ public sealed class DependenciesContainerTests
     public void InjectField()
     {
         var container = new DependenciesContainer();
-        var instance = new DependentFieldClass();
+        var instance = new DependentField();
         
         container.Register<IService, Service>();
         container.Inject(instance);
@@ -86,7 +86,7 @@ public sealed class DependenciesContainerTests
     public void InjectProperty()
     {
         var container = new DependenciesContainer();
-        var instance = new DependentPropertyClass();
+        var instance = new DependentProperty();
         
         container.Register<IService, Service>();
         container.Inject(instance);
@@ -99,7 +99,7 @@ public sealed class DependenciesContainerTests
     public void InjectMethod()
     {
         var container = new DependenciesContainer();
-        var instance = new DependentMethodClass();
+        var instance = new DependentMethod();
         
         container.Register<IService, Service>();
         container.Inject(instance);
@@ -115,7 +115,20 @@ public sealed class DependenciesContainerTests
         
         container.Register<IService, Service>();
         
-        var instance = container.Instantiate<DependentConstructorClass>();
+        var instance = container.Instantiate<DependentConstructor>();
+        
+        Assert.That(instance.Service, Is.Not.Null);
+        Assert.That(instance.Service, Is.TypeOf<Service>());
+    }
+
+    [Test]
+    public void InjectInConstructor()
+    {
+        var container = new DependenciesContainer();
+        
+        container.Register<IService, Service>();
+        
+        var instance = container.Instantiate<DependentInConstructor>();
         
         Assert.That(instance.Service, Is.Not.Null);
         Assert.That(instance.Service, Is.TypeOf<Service>());
@@ -183,7 +196,7 @@ public sealed class DependenciesContainerTests
     public void Injected()
     {
         var container = new DependenciesContainer();
-        var instance = new DependentFieldClass();
+        var instance = new DependentField();
         
         container.Register<IService>((_, injected) =>
         {
@@ -215,22 +228,35 @@ public sealed class DependenciesContainerTests
 
     private interface IService;
     private class Service : IService;
+    
+    private sealed class DependentInConstructor
+    {
+        public readonly IService? Service;
 
-    private sealed class DependentFieldClass
+        [UsedImplicitly, Dependency]
+        private readonly IService? _service;
+
+        public DependentInConstructor()
+        {
+            Service = _service;
+        }
+    }
+
+    private sealed class DependentField
     {
         [SuppressMessage("ReSharper", "MemberHidesStaticFromOuterClass")]
         [UsedImplicitly, Dependency]
         public readonly IService? Service;
     }
 
-    private sealed class DependentPropertyClass
+    private sealed class DependentProperty
     {
         [SuppressMessage("ReSharper", "MemberHidesStaticFromOuterClass")]
         [UsedImplicitly, Dependency]
         public IService? Service { get; private set; }
     }
     
-    private sealed class DependentMethodClass
+    private sealed class DependentMethod
     {
         [SuppressMessage("ReSharper", "MemberHidesStaticFromOuterClass")]
         public IService? Service { get; private set; }
@@ -243,12 +269,12 @@ public sealed class DependenciesContainerTests
     }
     
     [UsedImplicitly]
-    private sealed class DependentConstructorClass
+    private sealed class DependentConstructor
     {
         [SuppressMessage("ReSharper", "MemberHidesStaticFromOuterClass")]
         public readonly IService? Service;
 
-        public DependentConstructorClass(IService service)
+        public DependentConstructor(IService service)
         {
             Service = service;
         }
