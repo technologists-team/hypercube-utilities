@@ -1,5 +1,5 @@
-﻿using System.Globalization;
-using Hypercube.Utilities.Extensions;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 
 namespace Hypercube.Utilities.Arguments;
 
@@ -7,8 +7,12 @@ public class ArgumentParser
 {
     private readonly Dictionary<string, ArgumentSpecification> _specifications = new(StringComparer.OrdinalIgnoreCase);
     
-    private readonly Dictionary<string, List<string>> _parsedValues = new(StringComparer.OrdinalIgnoreCase);
-    private readonly List<string> _positionals = [];
+    private readonly Dictionary<string, object> _parsed = new(StringComparer.OrdinalIgnoreCase);
+
+    public ArgumentParser AddListOption<T>(string name, string description = "")
+    {
+        return AddOption<T>(name, description, list: true);
+    }
     
     public ArgumentParser AddOption<T>(string name, string description = "", T @default = default!, bool list = false)
     {
@@ -18,7 +22,7 @@ public class ArgumentParser
         if (_specifications.ContainsKey(name))
             throw new ArgumentException($"option '{name}' already defined");
         
-        _specifications[name] = new ArgumentSpecification(name, description,typeof(T), @default, list);
+        _specifications[name] = new ArgumentSpecification(name, description, typeof(T), @default!, list);
         return this;
     }
     
@@ -29,165 +33,185 @@ public class ArgumentParser
     
     public bool Has(string name)
     {
-        return _parsedValues.ContainsKey(name);
+        return _parsed.ContainsKey(name);
     }
     
     public T Get<T>(string name)
     {
         if (!_specifications.TryGetValue(name, out var specification))
-            throw new ArgumentException($"option '{name}' is not defined");
+            throw new ArgumentException($"Option {name} not defined");
 
-        if (!_parsedValues.TryGetValue(name, out var list) || list.Count == 0)
-        {
-            // return default if present
-            if (specification.Default != null && !specification.Default.Equals(GetDefaultForType(specification.Type)))
-                return (T)specification.Default;
-            // for flags default false
-            if (specification.IsFlag) return (T)(object)false;
-            throw new KeyNotFoundException($"option '{name}' not provided and has no default");
-        }
+        if (!_parsed.TryGetValue(name, out var data))
+            return (T) specification.Default;
 
-        var value = list.Last(); // last occurrence
-        return (T)ConvertTo(value, typeof(T));
+        if (!specification.List)
+            return (T) data;
+
+        throw new AggregateException();
+    }
+
+    public List<T> GetList<T>(string name)
+    {
+        if (!_specifications.TryGetValue(name, out var specification))
+            throw new ArgumentException($"Option {name} not defined");
+
+        if (!specification.List)
+            throw new AggregateException();
+        
+        return _parsed.TryGetValue(name, out var data)
+            ? ((List<object>)data).ConvertAll(e => (T) e)
+            : [];
+    }
+
+    public bool TryGet<T>(string name, [MaybeNullWhen(false)] out T value)
+    {
+        value = default;
+        
+        if (!_specifications.TryGetValue(name, out _))
+            throw new ArgumentException($"Option {name} not defined");
+        
+        if (!_parsed.TryGetValue(name, out var data))
+            return false;
+
+        value = (T) data;
+        return true;
     }
     
     public void Parse(string[] args)
     {
-        _parsedValues.Clear();
-        _positionals.Clear();
+        _parsed.Clear();
 
         for (var i = 0; i < args.Length; i++)
         {
-            var a = args[i];
+            var arg = args[i];
             
-            if (a == "--")
-            {
-                // Everything after is positional
-                for (var j = i + 1; j < args.Length; j++)
-                    _positionals.Add(args[j]);
-                
-                break;
-            }
-            
-            if (a.StartsWith("--"))
-            {
-                // --name or --name=value
-                var without = a[2..];
-
-                string? namePart = null; 
-                string? valuePart = null;
-                
-                var eq = without.IndexOf('=');
-                if (eq >= 0)
-                {
-                    namePart = without[..eq];
-                    valuePart = without[(eq + 1)..];
-                }
-                else
-                {
-                    namePart = without;
-                }
-                
-                if (!_specifications.TryGetValue(namePart, out var specification))
-                {
-                    // Unknown option -> store anyway as raw
-                    Store(namePart, valuePart ?? "true");
-                    continue;
-                }
-
-                if (specification.IsFlag)
-                {
-                    // Flag: presence sets true, unless value is provided explicitly like --flag=false
-                    Store(specification, valuePart ?? "true");
-                }
-                else
-                {
-                    if (valuePart != null)
-                        Store(specification, valuePart);
-                    else
-                    {
-                        // take next arg as value if available
-                        if (i + 1 < args.Length && !args[i + 1].StartsWith("-"))
-                        {
-                            i++;
-                            Store(specification, args[i]);
-                        }
-                        else
-                        {
-                            throw new ArgumentException($"option --{namePart} expects a value");
-                        }
-                    }
-                }
-            }
-            else
-            {
-                // positional
-                _positionals.Add(a);
-            }
-        }
-
-        // fill missing defaults
-        foreach (var (name, specification) in _specifications)
-        {
-            if (_parsedValues.ContainsKey(name))
+            // --name or --name=value
+            if (!arg.StartsWith("--"))
                 continue;
             
-            if (specification.List)
+            var without = arg[2..];
+            
+            var namePart = without;
+            string? valuePart = null;
+
+            var eq = without.IndexOf('=');
+            if (eq >= 0)
             {
-                _parsedValues[name] = [];
+                namePart = without[..eq];
+                valuePart = without[(eq + 1)..];
+            }
+
+            if (!_specifications.TryGetValue(namePart, out var specification))
+            {
+                // Unknown option
+                continue;
+            }
+
+            if (valuePart is not null)
+            {
+                Store(specification, valuePart);
                 continue;
             }
             
-            if (specification.Default is not null && !specification.Default.Equals(specification.Type.GetDefault()))
+            if (specification.IsFlag)
             {
-                _parsedValues[name] = [specification.Default.ToString()];
+                // Flag presence sets true, unless value is provided explicitly like --flag=false
+                Store(specification, "true");
+                continue;
             }
+
+            // --name value
+            if (i + 1 >= args.Length || args[i + 1].StartsWith($"-"))
+                throw new ArgumentException($"Option {namePart} expects a value");
+            
+            i++;
+            Store(specification, args[i]);
         }
     }
      
     private void Store(ArgumentSpecification specification, string value)
     {
-        Store(specification.Name, value);
+        if (_parsed.TryGetValue(specification.Name, out var data))
+        {
+            if (!specification.List)
+                throw new ArgumentException($"{specification.Name} specification cannot support multiplies values");
+            
+            ((List<object>) data).Add(value);
+            return;
+        }
+        
+        var converted = ConvertTo(value, specification.Type);
+        if (specification.List)
+            converted = new List<object> { converted };
+        
+        _parsed.Add(specification.Name, converted);
     }
-
-    private void Store(string name, string value) 
-    {
-        _parsedValues.GetOrInstantiate(name).Add(value);
-    }
+    
     
     private static object ConvertTo(string raw, Type target)
     {
         var culture = CultureInfo.InvariantCulture;
-
         switch (Type.GetTypeCode(target))
         {
             case TypeCode.String:
                 return raw;
-
-            case TypeCode.Int32:
-                return int.Parse(raw, culture);
-
-            case TypeCode.Int64:
-                return long.Parse(raw, culture);
-
-            case TypeCode.Double:
-                return double.Parse(raw, culture);
-            
+                        
             case TypeCode.Char:
                 return raw[0];
+            
+            case TypeCode.SByte:
+                return sbyte.Parse(raw);
+            
+            case TypeCode.Byte:
+                return byte.Parse(raw);
+            
+            case TypeCode.Int16:
+                return short.Parse(raw);
+            
+            case TypeCode.UInt16:
+                return ushort.Parse(raw);
+            
+            case TypeCode.Int32:
+                return int.Parse(raw);
+            
+            case TypeCode.UInt32:
+                return uint.Parse(raw);
+            
+            case TypeCode.Int64:
+                return long.Parse(raw);
 
+            case TypeCode.UInt64:
+                return ulong.Parse(raw);
+
+            case TypeCode.Single:
+                return float.Parse(raw, culture);
+            
+            case TypeCode.Double:
+                return double.Parse(raw, culture);
+
+            case TypeCode.Decimal:
+                return decimal.Parse(raw, culture);
+            
             case TypeCode.Boolean:
-                if (bool.TryParse(raw, out var b))
-                    return b;
+                if (bool.TryParse(raw, out var value))
+                    return value;
 
-                var lr = raw.ToLowerInvariant();
-                return lr switch
+                var lower = raw.ToLowerInvariant();
+                return lower switch
                 {
-                    "1" or "yes" or "y" or "on"  or "enable"  or "true"  or "t" => true,
-                    "0" or "no"  or "n" or "off" or "disable" or "false" or "f" => false,
+                    "1" or "yes" or "y" or "on"  or "enable"  or "e" or "true"  or "t" => true,
+                    "0" or "no"  or "n" or "off" or "disable" or "d" or "false" or "f" => false,
                     _ => throw new FormatException($"Cannot convert '{raw}' to bool")
                 };
 
+            case TypeCode.Empty:
+            case TypeCode.Object:
+            case TypeCode.DBNull:
+                throw new Exception($"Unsupported type {target.FullName} ({Type.GetTypeCode(target)})");
+            
+            case TypeCode.DateTime:
+                return DateTime.Parse(raw);
+            
             default:
                 return target.IsEnum
                     ? Enum.Parse(target, raw, ignoreCase: true)
