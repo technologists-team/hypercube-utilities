@@ -15,6 +15,11 @@ public static class TypeExtension
     /// A constant for retrieving fields that are accessible (including non-public), instance-level, declared in the type itself, and public.
     /// </summary>
     public const BindingFlags AccessibleInstanceFields = BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly | BindingFlags.Public;
+
+    public static object? GetDefault(this Type type)
+    {
+        return type.IsValueType ? Activator.CreateInstance(type) : null;
+    }
     
     /// <summary>
     /// Checks if the type is a static class.
