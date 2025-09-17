@@ -11,7 +11,7 @@ public sealed class OrderedActionsTests
         var actions = new OrderedActions<int>();
         var called = false;
 
-        actions.Add(x => called = true);
+        actions.Add(_ => called = true);
 
         Assert.That(actions.Count, Is.EqualTo(1));
         

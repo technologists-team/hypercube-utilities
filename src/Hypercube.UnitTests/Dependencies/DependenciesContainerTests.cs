@@ -231,6 +231,7 @@ public sealed class DependenciesContainerTests
     
     private sealed class DependentInConstructor
     {
+        // ReSharper disable once MemberHidesStaticFromOuterClass
         public readonly IService? Service;
 
         [UsedImplicitly, Dependency]
