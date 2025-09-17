@@ -16,6 +16,11 @@ public static class TypeExtension
     /// </summary>
     public const BindingFlags AccessibleInstanceFields = BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly | BindingFlags.Public;
 
+    public static TypeCode GetTypeCode(this Type type)
+    {
+        return Type.GetTypeCode(type);
+    }
+    
     public static object? GetDefault(this Type type)
     {
         return type.IsValueType ? Activator.CreateInstance(type) : null;
