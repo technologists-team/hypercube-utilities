@@ -16,7 +16,7 @@ public interface IDependenciesContainer
 {
     #region Register
     
-  /// <summary>
+    /// <summary>
     /// Registers a type for dependency injection using itself as the implementation.
     /// </summary>
     /// <typeparam name="T">The type to register.</typeparam>
