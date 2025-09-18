@@ -16,7 +16,7 @@ public sealed class Union4Tests
     };
 
     [Test, TestCaseSource(nameof(NumberTestCases))]
-    public void NumbersGetSetTest<T>(T expectedValue) where T : struct
+    public void NumbersGetSetTest<T>(T expectedValue) where T : unmanaged
     {
         var union = new Union4('a');
         Assert.Throws<InvalidCastException>(() => { _ = union.Get<T>(); });

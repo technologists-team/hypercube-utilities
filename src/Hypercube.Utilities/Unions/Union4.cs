@@ -1,8 +1,31 @@
 using System.Runtime.InteropServices;
 using Hypercube.Utilities.Unions.Extensions;
+using Hypercube.Utilities.Unsafe;
 
 namespace Hypercube.Utilities.Unions;
 
+/// <summary>
+/// Represents a 4-byte union capable of storing multiple unmanaged types in the same memory location.
+/// The actual type stored is tracked by the <see cref="Type"/> property.
+/// </summary>
+/// <remarks>
+/// <para>
+/// This struct allows storing a single value of type <see cref="byte"/>, <see cref="sbyte"/>,
+/// <see cref="short"/>, <see cref="ushort"/>, <see cref="char"/>, <see cref="bool"/>,
+/// <see cref="int"/>, <see cref="uint"/>, or <see cref="float"/>. Only one value can be stored at a time.
+/// </para>
+/// <para>
+/// The structure has a size of 5 bytes: 4 bytes for the value itself (the union of all fields)
+/// and 1 byte for <see cref="Type"/>, which stores the current type code. This ensures the type
+/// is known at runtime and allows safe reading of the stored value.
+/// </para>
+/// <para>
+/// When accessing a typed property (e.g., <see cref="Int"/> or <see cref="Float"/>),
+/// the getter checks that the stored type matches the requested type. If the type does not match,
+/// an <see cref="InvalidCastException"/> is thrown. This prevents accidental reads of the wrong type.
+/// </para>
+/// </remarks>
+/// <seealso cref="Union4Unsafe"/>
 [StructLayout(LayoutKind.Explicit, Size = 5)]
 public struct Union4 : IUnion
 {
@@ -159,36 +182,36 @@ public struct Union4 : IUnion
         _single = value;
     }
 
-    public T Get<T>() where T : struct
+  public T Get<T>() where T : unmanaged
     {
         switch (typeof(T).GetUnionTypeCode())
         {
             case UnionTypeCode.Boolean:
-                return (T) (object) Bool;
+                return HyperUnsafe.AsUnmanaged<bool, T>(Bool);
             
             case UnionTypeCode.Char:
-                return (T) (object) Char;
+                return HyperUnsafe.AsUnmanaged<char, T>(Char);
             
             case UnionTypeCode.SByte:
-                return (T) (object) SByte;
+                return HyperUnsafe.AsUnmanaged<sbyte, T>(SByte);
             
             case UnionTypeCode.Byte:
-                return (T) (object) Byte;
+                return HyperUnsafe.AsUnmanaged<byte, T>(Byte);
             
             case UnionTypeCode.Int16:
-                return (T) (object) Short;
+                return HyperUnsafe.AsUnmanaged<short, T>(Short);
             
             case UnionTypeCode.UInt16:
-                return (T) (object) UShort;
+                return HyperUnsafe.AsUnmanaged<ushort, T>(UShort);
             
             case UnionTypeCode.Int32:
-                return (T) (object) Int;
+                return HyperUnsafe.AsUnmanaged<int, T>(Int);
             
             case UnionTypeCode.UInt32:
-                return (T) (object) UInt;
+                return HyperUnsafe.AsUnmanaged<uint, T>(UInt);
 
             case UnionTypeCode.Single:
-                return (T) (object) Float;
+                return HyperUnsafe.AsUnmanaged<float, T>(Float);
 
             case UnionTypeCode.Empty:
             case UnionTypeCode.Object:
@@ -203,44 +226,44 @@ public struct Union4 : IUnion
         }
     }
 
-    public void Set<T>(T value) where T : struct
+    public void Set<T>(T value) where T : unmanaged
     {
         switch (typeof(T).GetUnionTypeCode())
         {
             case UnionTypeCode.Boolean:
-                Bool = (bool) (object) value;
+                Bool = HyperUnsafe.AsUnmanaged<T, bool>(value);
                 break;
 
             case UnionTypeCode.Char:
-                Char = (char) (object) value;
+                Char = HyperUnsafe.AsUnmanaged<T, char>(value);
                 break;
                 
             case UnionTypeCode.SByte:
-                SByte = (sbyte) (object) value;
+                SByte = HyperUnsafe.AsUnmanaged<T, sbyte>(value);
                 break;
                 
             case UnionTypeCode.Byte:
-                Byte = (byte) (object) value;
+                Byte = HyperUnsafe.AsUnmanaged<T, byte>(value);
                 break;
                       
             case UnionTypeCode.Int16:
-                Short = (short) (object) value;
+                Short = HyperUnsafe.AsUnmanaged<T, short>(value);
                 break;          
             
             case UnionTypeCode.UInt16:
-                UShort = (ushort) (object) value;
+                UShort =HyperUnsafe.AsUnmanaged<T, ushort>(value);
                 break;          
            
             case UnionTypeCode.Int32:
-                Int = (int) (object) value;
+                Int = HyperUnsafe.AsUnmanaged<T, int>(value);
                 break;    
       
             case UnionTypeCode.UInt32:
-                UInt = (uint) (object) value;
+                UInt = HyperUnsafe.AsUnmanaged<T, uint>(value);
                 break;    
             
             case UnionTypeCode.Single:
-                Float = (float) (object) value;
+                Float = HyperUnsafe.AsUnmanaged<T, float>(value);
                 break;    
             
             case UnionTypeCode.Empty:
