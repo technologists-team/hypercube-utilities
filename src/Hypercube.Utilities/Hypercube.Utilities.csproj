@@ -16,6 +16,10 @@
         <RepositoryUrl>https://github.com/technologists-team/hypercube-utilities</RepositoryUrl>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
+
+    <PropertyGroup>
+        <NoWarn>CS0078</NoWarn>
+    </PropertyGroup>
     
     <ItemGroup>
         <None Include="../../README.md" Pack="true" PackagePath="" Visible="false"/>

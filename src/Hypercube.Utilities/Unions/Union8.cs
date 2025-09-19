@@ -4,30 +4,8 @@ using Hypercube.Utilities.Unsafe;
 
 namespace Hypercube.Utilities.Unions;
 
-/// <summary>
-/// Represents a 4-byte union capable of storing multiple unmanaged types in the same memory location.
-/// The actual type stored is tracked by the <see cref="Type"/> property.
-/// </summary>
-/// <remarks>
-/// <para>
-/// This struct allows storing a single value of type <see cref="byte"/>, <see cref="sbyte"/>,
-/// <see cref="short"/>, <see cref="ushort"/>, <see cref="char"/>, <see cref="bool"/>,
-/// <see cref="int"/>, <see cref="uint"/>, or <see cref="float"/>. Only one value can be stored at a time.
-/// </para>
-/// <para>
-/// The structure has a size of 5 bytes: 4 bytes for the value itself (the union of all fields)
-/// and 1 byte for <see cref="Type"/>, which stores the current type code. This ensures the type
-/// is known at runtime and allows safe reading of the stored value.
-/// </para>
-/// <para>
-/// When accessing a typed property (e.g., <see cref="Int"/> or <see cref="Float"/>),
-/// the getter checks that the stored type matches the requested type. If the type does not match,
-/// an <see cref="InvalidCastException"/> is thrown. This prevents accidental reads of the wrong type.
-/// </para>
-/// </remarks>
-/// <seealso cref="Union4Unsafe"/>
-[StructLayout(LayoutKind.Explicit, Size = 5)]
-public struct Union4 : IUnion
+[StructLayout(LayoutKind.Explicit, Size = 9)]
+public struct Union8 : IUnion
 {
     [FieldOffset(0)] private byte _byte;
     [FieldOffset(0)] private sbyte _sbyte;
@@ -38,9 +16,12 @@ public struct Union4 : IUnion
     [FieldOffset(0)] private int _int32;
     [FieldOffset(0)] private uint _uint32;
     [FieldOffset(0)] private float _single;
-
-    [field: FieldOffset(4)]
-    public UnionTypeCode Type { get; private set; } = UnionTypeCode.Empty;
+    [FieldOffset(0)] private long _int64;
+    [FieldOffset(0)] private ulong _uint64;
+    [FieldOffset(0)] private double _double;
+    
+    [field: FieldOffset(8)]
+    public UnionTypeCode Type { get; private set; }
     
     public byte Byte
     {
@@ -132,56 +113,101 @@ public struct Union4 : IUnion
         get => Type == UnionTypeCode.Single ? _single : throw new InvalidCastException();
     }
     
-    public Union4(UnionTypeCode type)
+    public long Long
+    {
+        set
+        {
+            Type = UnionTypeCode.Int64;
+            _int64 = value;
+        }
+        get => Type == UnionTypeCode.Int64 ? _int64 : throw new InvalidCastException();
+    }
+    
+    public ulong ULong
+    {
+        set
+        {
+            Type = UnionTypeCode.UInt64;
+            _uint64 = value;
+        }
+        get => Type == UnionTypeCode.UInt64 ? _uint64 : throw new InvalidCastException();
+    }
+    
+    public double Double
+    {
+        set
+        {
+            Type = UnionTypeCode.Double;
+            _double = value;
+        }
+        get => Type == UnionTypeCode.Double ? _double : throw new InvalidCastException();
+    }
+    
+    public Union8(UnionTypeCode type)
     {
         Type = type;
     }
 
-    public Union4(byte value) : this(UnionTypeCode.Byte)
+    public Union8(byte value) : this(UnionTypeCode.Byte)
     {
         _byte = value;
     }
 
-    public Union4(sbyte value) : this(UnionTypeCode.SByte)
+    public Union8(sbyte value) : this(UnionTypeCode.SByte)
     {
         _sbyte = value;
     }
 
-    public Union4(short value) : this(UnionTypeCode.Int16)
+    public Union8(short value) : this(UnionTypeCode.Int16)
     {
         _int16 = value;
     }
 
-    public Union4(ushort value) : this(UnionTypeCode.UInt16)
+    public Union8(ushort value) : this(UnionTypeCode.UInt16)
     {
         _uint16 = value;
     }
 
-    public Union4(char value) : this(UnionTypeCode.Char)
+    public Union8(char value) : this(UnionTypeCode.Char)
     {
         _char = value;
     }
 
-    public Union4(bool value) : this(UnionTypeCode.Boolean)
+    public Union8(bool value) : this(UnionTypeCode.Boolean)
     {
         _boolean = value;
     }
 
-    public Union4(int value) : this(UnionTypeCode.Int32)
+    public Union8(int value) : this(UnionTypeCode.Int32)
     {
         _int32 = value;
     }
     
-    public Union4(uint value) : this(UnionTypeCode.UInt32)
+    public Union8(uint value) : this(UnionTypeCode.UInt32)
     {
         _uint32 = value;
     }
     
-    public Union4(float value) : this(UnionTypeCode.Single)
+    public Union8(float value) : this(UnionTypeCode.Single)
     {
         _single = value;
     }
+    
+    public Union8(long value) : this(UnionTypeCode.Int64)
+    {
+        _int64 = value;
+    }
 
+    public Union8(ulong value) : this(UnionTypeCode.UInt64)
+    {
+        _uint64 = value;
+    }
+
+    public Union8(double value) : this(UnionTypeCode.Double)
+    {
+        _double = value;
+    }
+    
     public T Get<T>() where T : unmanaged
     {
         switch (typeof(T).GetUnionTypeCode())
@@ -213,14 +239,20 @@ public struct Union4 : IUnion
             case UnionTypeCode.Single:
                 return HyperUnsafe.AsUnmanaged<float, T>(Float);
 
+            case UnionTypeCode.Int64:
+                return HyperUnsafe.AsUnmanaged<long, T>(Long);
+                
+            case UnionTypeCode.UInt64:
+                return HyperUnsafe.AsUnmanaged<ulong, T>(ULong);
+            
+            case UnionTypeCode.Double:
+                return HyperUnsafe.AsUnmanaged<double, T>(Double);
+
             case UnionTypeCode.Empty:
             case UnionTypeCode.Object:
-            case UnionTypeCode.Double:
             case UnionTypeCode.Decimal:
             case UnionTypeCode.DateTime:
             case UnionTypeCode.String:
-            case UnionTypeCode.Int64:
-            case UnionTypeCode.UInt64:
             default:
                 throw new InvalidCastException();
         }
@@ -266,14 +298,23 @@ public struct Union4 : IUnion
                 Float = HyperUnsafe.AsUnmanaged<T, float>(value);
                 break;    
             
+            case UnionTypeCode.Int64:
+                Long = HyperUnsafe.AsUnmanaged<T, long>(value);
+                break; 
+                
+            case UnionTypeCode.UInt64:
+                ULong = HyperUnsafe.AsUnmanaged<T, ulong>(value);
+                break;
+            
+            case UnionTypeCode.Double:
+                Double = HyperUnsafe.AsUnmanaged<T, double>(value); 
+                break;
+                
             case UnionTypeCode.Empty:
             case UnionTypeCode.Object:
-            case UnionTypeCode.Double:
             case UnionTypeCode.Decimal:
             case UnionTypeCode.DateTime:
             case UnionTypeCode.String:
-            case UnionTypeCode.Int64:
-            case UnionTypeCode.UInt64:
             default:
                 throw new InvalidCastException();
         }
