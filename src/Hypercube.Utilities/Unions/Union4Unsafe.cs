@@ -154,7 +154,7 @@ public struct Union4Unsafe : IUnion
                 break;          
             
             case UnionTypeCode.UInt16:
-                UShort =HyperUnsafe.AsUnmanaged<T, ushort>(value);
+                UShort = HyperUnsafe.AsUnmanaged<T, ushort>(value);
                 break;          
            
             case UnionTypeCode.Int32:

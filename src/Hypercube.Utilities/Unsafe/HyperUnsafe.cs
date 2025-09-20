@@ -12,4 +12,12 @@ public static class HyperUnsafe
         fixed (TValue* ptr = &value)
             return *(TResult*)ptr;
     }
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static TResult AsManaged<TValue, TResult>(ref TValue value)
+        where TValue : class
+        where TResult : class
+    {
+        return System.Runtime.CompilerServices.Unsafe.As<TValue, TResult>(ref value);
+    }
 }
