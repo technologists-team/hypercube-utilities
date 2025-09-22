@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Collections.Specialized;
+using System.Diagnostics.CodeAnalysis;
 using Hypercube.Utilities.Dependencies;
 using Hypercube.Utilities.Dependencies.Exceptions;
 using JetBrains.Annotations;
@@ -226,6 +227,19 @@ public sealed class DependenciesContainerTests
         Assert.That(service, Is.SameAs(container.Resolve<IService>()));
     }
 
+    [Test]
+    public void AutoInject()
+    {
+        var container = new DependenciesContainer();
+
+        container.Register<IService, Service>();
+        container.Register<DependentInConstructor>();
+
+        var service = container.Resolve<DependentInConstructor>().Service;
+        
+        Assert.That(service, Is.EqualTo(container.Resolve<IService>()));
+    }
+
     private interface IService;
     private class Service : IService;
     
@@ -235,7 +249,7 @@ public sealed class DependenciesContainerTests
         public readonly IService? Service;
 
         [UsedImplicitly, Dependency]
-        private readonly IService? _service;
+        private readonly IService _service = default!;
 
         public DependentInConstructor()
         {

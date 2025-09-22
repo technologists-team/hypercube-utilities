@@ -86,6 +86,8 @@ public class DependenciesContainer : IDependenciesContainer
         {
             var instance = RuntimeHelpers.GetUninitializedObject(implementation);
             
+            Inject(instance, autoInject: true);
+            
             var parameters = constructor.GetParameters();
             constructor.Invoke(instance, parameters.Length == 0
                 ? []
@@ -234,7 +236,7 @@ public class DependenciesContainer : IDependenciesContainer
             if (!Attribute.IsDefined(field, typeof(DependencyAttribute)))
                 continue;
 
-            field.SetValue(instance, Resolve(field.FieldType, instance));
+            field.SetValue(instance, LocalResolve(field.FieldType, instance));
         }
 
         foreach (var property in type.GetProperties(binding))
@@ -245,7 +247,7 @@ public class DependenciesContainer : IDependenciesContainer
             if (!property.CanWrite)
                 continue;
 
-            property.SetValue(instance, Resolve(property.PropertyType, instance));
+            property.SetValue(instance, LocalResolve(property.PropertyType, instance));
         }
 
         foreach (var method in type.GetMethods(binding))
@@ -255,10 +257,21 @@ public class DependenciesContainer : IDependenciesContainer
             
             var parameters = method.GetParameters();
             var parametersResolved = parameters
-                .Select(param => Resolve(param.ParameterType, instance))
+                .Select(param => LocalResolve(param.ParameterType, instance))
                 .ToArray();
             
             method.Invoke(instance, parametersResolved);
+        }
+        
+        return;
+
+        object LocalResolve(Type localType, object injected)
+        {
+            var resolved = Resolve(localType, injected);
+            if (autoInject)
+                Inject(resolved, autoInject: true);
+            
+            return resolved;
         }
     }
 
@@ -302,7 +315,6 @@ public class DependenciesContainer : IDependenciesContainer
             if (registration.Lifetime == DependencyLifetime.Singleton)
                 _instances[type] = instance;
             
-            Inject(instance, autoInject: true);
             return instance;
         }
     }
