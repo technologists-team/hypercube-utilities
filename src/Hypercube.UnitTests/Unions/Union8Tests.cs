@@ -252,7 +252,7 @@ public sealed class Union8Tests
         
         Assert.Multiple(() =>
         {
-            Assert.That(union.Type, Is.EqualTo(UnionTypeCode.UInt32));
+            Assert.That(union.Type, Is.EqualTo(UnionTypeCode.UInt64));
             Assert.That(union.ULong, Is.EqualTo(5000ul));
         });
 
@@ -260,7 +260,7 @@ public sealed class Union8Tests
         
         Assert.Multiple(() =>
         {
-            Assert.That(union.Type, Is.EqualTo(UnionTypeCode.UInt32));
+            Assert.That(union.Type, Is.EqualTo(UnionTypeCode.UInt64));
             Assert.That(union.ULong, Is.EqualTo(1000ul));
         });
     }
