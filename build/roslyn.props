@@ -1,0 +1,9 @@
+<Project>
+
+  <PropertyGroup>
+    <IsRoslynComponent>true</IsRoslynComponent>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <IncludeAnalyzerReleaseTrackingFiles>true</IncludeAnalyzerReleaseTrackingFiles>
+  </PropertyGroup>
+
+</Project>

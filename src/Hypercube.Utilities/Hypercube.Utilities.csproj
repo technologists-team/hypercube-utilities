@@ -1,40 +1,19 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-    <PropertyGroup>
-        <TargetFramework>net9.0</TargetFramework>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+  <Import Project="..\..\build\main.props" />
+  <Import Project="..\..\build\package.props" />
 
-        <PackageReadmeFile>README.md</PackageReadmeFile>
-        <PackageIcon>assets/logo.png</PackageIcon>
+  <PropertyGroup>
+    <NoWarn>CS0078</NoWarn>
+  </PropertyGroup>
 
-        <Version>1.0.9</Version>
-        <Authors>TornadoTech</Authors>
-        <PackageLicenseFile>LICENSE</PackageLicenseFile>
-        <RepositoryUrl>https://github.com/technologists-team/hypercube-utilities</RepositoryUrl>
-        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    </PropertyGroup>
-
-    <PropertyGroup>
-        <NoWarn>CS0078</NoWarn>
-    </PropertyGroup>
-    
-    <ItemGroup>
-        <None Include="../../PACKAGE.md" Pack="true" PackagePath="README.md" Visible="false"/>
-        <None Include="../../LICENSE" Pack="true" PackagePath="" Visible="false"/>
-        <None Include="../../assets/logo.png" Pack="true" PackagePath="assets/" Visible="false" />
-        <None Include="../../assets/card.svg" Pack="true" PackagePath="assets/" Visible="false" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <ProjectReference Include="..\Hypercube.Utilities.Analyzers\Hypercube.Utilities.Analyzers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-        <ProjectReference Include="..\Hypercube.Utilities.Analyzers.CodeFix\Hypercube.Utilities.Analyzers.CodeFix.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-    </ItemGroup>
-    
-    <ItemGroup>
-        <PackageReference Include="JetBrains.Annotations" Version="2025.2.2" />
-    </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Hypercube.Utilities.Analyzers\Hypercube.Utilities.Analyzers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\Hypercube.Utilities.Analyzers.CodeFix\Hypercube.Utilities.Analyzers.CodeFix.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="JetBrains.Annotations" Version="2025.2.2" />
+  </ItemGroup>
 
 </Project>

@@ -1,0 +1,21 @@
+<Project>
+
+  <PropertyGroup>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>assets/logo.png</PackageIcon>
+    <Authors>TornadoTech</Authors>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <RepositoryUrl>https://github.com/technologists-team/hypercube-utilities</RepositoryUrl>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <OutputPath>../../bin</OutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="../../PACKAGE.md" Pack="true" PackagePath="README.md" Visible="false"/>
+    <None Include="../../LICENSE" Pack="true" PackagePath="" Visible="false"/>
+    <None Include="../../assets/logo.png" Pack="true" PackagePath="assets/" Visible="false" />
+    <None Include="../../assets/card.svg" Pack="true" PackagePath="assets/" Visible="false" />
+  </ItemGroup>
+
+</Project>

@@ -1,15 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-
-    <IsRoslynComponent>true</IsRoslynComponent>
-    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
-    <IncludeAnalyzerReleaseTrackingFiles>true</IncludeAnalyzerReleaseTrackingFiles>
-    <RootNamespace>Hypercube.Analyzers</RootNamespace>
-  </PropertyGroup>
+  <Import Project="..\..\build\main.props" />
+  <Import Project="..\..\build\package.props" />
+  <Import Project="..\..\build\roslyn.props" />
   
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" />
