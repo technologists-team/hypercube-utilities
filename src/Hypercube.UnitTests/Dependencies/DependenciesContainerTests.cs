@@ -136,6 +136,21 @@ public sealed class DependenciesContainerTests
     }
     
     [Test]
+    public void InjectInConstructorAll()
+    {
+        var container = new DependenciesContainer();
+        
+        container.Register<IService, Service>();
+        container.Register<DependentInConstructor>();
+        container.ResolveAll();
+        
+        var instance = container.Resolve<DependentInConstructor>();
+        
+        Assert.That(instance.Service, Is.Not.Null);
+        Assert.That(instance.Service, Is.TypeOf<Service>());
+    }
+    
+    [Test]
     public void TransientRegistration()
     {
         var container = new DependenciesContainer();
@@ -240,6 +255,24 @@ public sealed class DependenciesContainerTests
         Assert.That(service, Is.EqualTo(container.Resolve<IService>()));
     }
 
+    [Test]
+    public void PostInject()
+    {
+        var container = new DependenciesContainer();
+
+        container.Register<IService, Service>();
+
+        var instance = container.Instantiate<DependentPostInject>();
+        
+        Assert.Multiple(() =>
+        {
+            Assert.That(instance.Service, Is.EqualTo(container.Resolve<IService>()));
+            Assert.That(instance.ServicePostInjected, Is.Not.Null);
+            Assert.That(instance.ServicePostInjected, Is.EqualTo(container.Resolve<IService>()));
+        });
+    }
+
+    
     private interface IService;
     private class Service : IService;
     
@@ -249,11 +282,25 @@ public sealed class DependenciesContainerTests
         public readonly IService? Service;
 
         [UsedImplicitly, Dependency]
-        private readonly IService _service = default!;
+        private readonly IService _service;
 
         public DependentInConstructor()
         {
             Service = _service;
+        }
+    }
+
+    private sealed class DependentPostInject : IPostInject
+    {
+        public IService? ServicePostInjected;
+        
+        [SuppressMessage("ReSharper", "MemberHidesStaticFromOuterClass")]
+        [UsedImplicitly, Dependency]
+        public readonly IService? Service;
+
+        public void OnPostInject()
+        {
+            ServicePostInjected = Service;
         }
     }
 
@@ -298,16 +345,22 @@ public sealed class DependenciesContainerTests
     [UsedImplicitly]
     private sealed class A
     {
-        [SuppressMessage("Compiler", "CS0414")]
+#pragma warning disable CS8618
+#pragma warning disable CS0169
         [UsedImplicitly, Dependency]
-        private readonly B _dependency = default!;
+        private readonly B _dependency;
+#pragma warning restore CS0169
+#pragma warning restore CS8618
     }
 
     [UsedImplicitly]
     private sealed class B
     {
-        [SuppressMessage("Compiler", "CS0414")]
+#pragma warning disable CS8618
+#pragma warning disable CS0169 
         [UsedImplicitly, Dependency]
-        private readonly A _dependency = default!;
+        private readonly A _dependency;
+#pragma warning restore CS0169
+#pragma warning restore CS8618
     }
 }

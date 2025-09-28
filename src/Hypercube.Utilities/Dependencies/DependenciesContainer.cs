@@ -263,6 +263,9 @@ public class DependenciesContainer : IDependenciesContainer
             method.Invoke(instance, parametersResolved);
         }
         
+        if (instance is IPostInject postInject)
+            postInject.OnPostInject();
+        
         return;
 
         object LocalResolve(Type localType, object injected)

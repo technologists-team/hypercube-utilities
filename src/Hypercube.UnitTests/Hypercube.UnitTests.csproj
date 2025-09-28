@@ -25,6 +25,11 @@
     </PropertyGroup>
   
     <ItemGroup>
+      <ProjectReference Include="..\Hypercube.Analyzers\Hypercube.Analyzers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+      <ProjectReference Include="..\Hypercube.Analyzers.CodeFix\Hypercube.Analyzers.CodeFix.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    </ItemGroup>
+  
+    <ItemGroup>
       <ProjectReference Include="..\Hypercube.Utilities\Hypercube.Utilities.csproj" />
     </ItemGroup>
     

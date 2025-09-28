@@ -9,7 +9,7 @@ namespace Hypercube.Utilities.Configuration;
 
 public class ConfigManager : IConfigManager
 {
-    [Dependency] private readonly ILogger _logger = default!;
+    [Dependency] private readonly ILogger _logger;
     
     private static readonly Dictionary<string, Dictionary<string, FieldInfo>> Fields = new();
 
