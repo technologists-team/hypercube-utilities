@@ -1,5 +1,4 @@
-﻿using System.Collections.Specialized;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using Hypercube.Utilities.Dependencies;
 using Hypercube.Utilities.Dependencies.Exceptions;
 using JetBrains.Annotations;

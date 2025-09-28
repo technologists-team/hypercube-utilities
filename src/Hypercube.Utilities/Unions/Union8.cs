@@ -1,6 +1,5 @@
 using System.Runtime.InteropServices;
 using Hypercube.Utilities.Unions.Extensions;
-using Hypercube.Utilities.Unsafe;
 
 namespace Hypercube.Utilities.Unions;
 
@@ -19,6 +18,7 @@ public struct Union8 : IUnion
     [FieldOffset(0)] private long _int64;
     [FieldOffset(0)] private ulong _uint64;
     [FieldOffset(0)] private double _double;
+    [FieldOffset(0)] private DateTime _dateTime;
     
     [field: FieldOffset(8)]
     public UnionTypeCode Type { get; private set; }
@@ -143,6 +143,16 @@ public struct Union8 : IUnion
         get => Type == UnionTypeCode.Double ? _double : throw new InvalidCastException();
     }
     
+    public DateTime DateTime
+    {
+        set
+        {
+            Type = UnionTypeCode.DateTime;
+            _dateTime = value;
+        }
+        get => Type == UnionTypeCode.DateTime ? _dateTime : throw new InvalidCastException();
+    }
+    
     public Union8(UnionTypeCode type)
     {
         Type = type;
@@ -208,9 +218,15 @@ public struct Union8 : IUnion
         _double = value;
     }
     
+    public Union8(DateTime value) : this(UnionTypeCode.DateTime)
+    {
+        _dateTime = value;
+    }
+    
     public T Get<T>() where T : unmanaged
     {
-        switch (typeof(T).GetUnionTypeCode())
+        var code = typeof(T).GetUnionTypeCode();
+        switch (code)
         {
             case UnionTypeCode.Boolean:
                 return HyperUnsafe.AsUnmanaged<bool, T>(Bool);
@@ -248,19 +264,18 @@ public struct Union8 : IUnion
             case UnionTypeCode.Double:
                 return HyperUnsafe.AsUnmanaged<double, T>(Double);
 
-            case UnionTypeCode.Empty:
-            case UnionTypeCode.Object:
-            case UnionTypeCode.Decimal:
             case UnionTypeCode.DateTime:
-            case UnionTypeCode.String:
+                return HyperUnsafe.AsUnmanaged<DateTime, T>(DateTime);
+            
             default:
-                throw new InvalidCastException();
+                throw new UnionUnsupportedCastException(this, code);
         }
     }
 
     public void Set<T>(T value) where T : unmanaged
     {
-        switch (typeof(T).GetUnionTypeCode())
+        var code = typeof(T).GetUnionTypeCode();
+        switch (code)
         {
             case UnionTypeCode.Boolean:
                 Bool = HyperUnsafe.AsUnmanaged<T, bool>(value);
@@ -283,7 +298,7 @@ public struct Union8 : IUnion
                 break;          
             
             case UnionTypeCode.UInt16:
-                UShort =HyperUnsafe.AsUnmanaged<T, ushort>(value);
+                UShort = HyperUnsafe.AsUnmanaged<T, ushort>(value);
                 break;          
            
             case UnionTypeCode.Int32:
@@ -310,13 +325,12 @@ public struct Union8 : IUnion
                 Double = HyperUnsafe.AsUnmanaged<T, double>(value); 
                 break;
                 
-            case UnionTypeCode.Empty:
-            case UnionTypeCode.Object:
-            case UnionTypeCode.Decimal:
             case UnionTypeCode.DateTime:
-            case UnionTypeCode.String:
+                DateTime = HyperUnsafe.AsUnmanaged<T, DateTime>(value); 
+                break;
+            
             default:
-                throw new InvalidCastException();
+                throw new UnionUnsupportedCastException(this, code);
         }
     }
 }

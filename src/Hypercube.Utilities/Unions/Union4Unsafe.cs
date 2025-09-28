@@ -1,6 +1,5 @@
 using System.Runtime.InteropServices;
 using Hypercube.Utilities.Unions.Extensions;
-using Hypercube.Utilities.Unsafe;
 
 namespace Hypercube.Utilities.Unions;
 
@@ -40,54 +39,55 @@ public struct Union4Unsafe : IUnion
     
     public UnionTypeCode Type => UnionTypeCode.Empty;
     
-    public Union4Unsafe(byte value) : this()
+    public Union4Unsafe(byte value)
     {
         Byte = value;
     }
 
-    public Union4Unsafe(sbyte value) : this()
+    public Union4Unsafe(sbyte value)
     {
         SByte = value;
     }
 
-    public Union4Unsafe(short value) : this()
+    public Union4Unsafe(short value)
     {
         Short = value;
     }
 
-    public Union4Unsafe(ushort value) : this()
+    public Union4Unsafe(ushort value)
     {
         UShort = value;
     }
 
-    public Union4Unsafe(char value) : this()
+    public Union4Unsafe(char value)
     {
         Char = value;
     }
 
-    public Union4Unsafe(bool value) : this()
+    public Union4Unsafe(bool value)
     {
         Bool = value;
     }
 
-    public Union4Unsafe(int value) : this()
+    public Union4Unsafe(int value)
     {
         Int = value;
     }
     
-    public Union4Unsafe(uint value) : this()
+    public Union4Unsafe(uint value)
     {
         UInt = value;
     }
     
-    public Union4Unsafe(float value) : this()
+    public Union4Unsafe(float value)
     {
         Float = value;
     }
 
     public T Get<T>() where T : unmanaged
     {
-        switch (typeof(T).GetUnionTypeCode())
+        var code = typeof(T).GetUnionTypeCode();
+        switch (code)
         {
             case UnionTypeCode.Boolean:
                 return HyperUnsafe.AsUnmanaged<bool, T>(Bool);
@@ -116,22 +116,15 @@ public struct Union4Unsafe : IUnion
             case UnionTypeCode.Single:
                 return HyperUnsafe.AsUnmanaged<float, T>(Float);
 
-            case UnionTypeCode.Empty:
-            case UnionTypeCode.Object:
-            case UnionTypeCode.Double:
-            case UnionTypeCode.Decimal:
-            case UnionTypeCode.DateTime:
-            case UnionTypeCode.String:
-            case UnionTypeCode.Int64:
-            case UnionTypeCode.UInt64:
             default:
-                throw new InvalidCastException();
+                throw new UnionUnsupportedCastException(this, code);
         }
     }
 
     public void Set<T>(T value) where T : unmanaged
     {
-        switch (typeof(T).GetUnionTypeCode())
+        var code = typeof(T).GetUnionTypeCode();
+        switch (code)
         {
             case UnionTypeCode.Boolean:
                 Bool = HyperUnsafe.AsUnmanaged<T, bool>(value);
@@ -169,16 +162,8 @@ public struct Union4Unsafe : IUnion
                 Float = HyperUnsafe.AsUnmanaged<T, float>(value);
                 break;    
             
-            case UnionTypeCode.Empty:
-            case UnionTypeCode.Object:
-            case UnionTypeCode.Double:
-            case UnionTypeCode.Decimal:
-            case UnionTypeCode.DateTime:
-            case UnionTypeCode.String:
-            case UnionTypeCode.Int64:
-            case UnionTypeCode.UInt64:
             default:
-                throw new InvalidCastException();
+                throw new UnionUnsupportedCastException(this, code);
         }
     }
 }

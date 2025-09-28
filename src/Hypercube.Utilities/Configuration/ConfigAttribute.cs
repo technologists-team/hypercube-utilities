@@ -1,12 +1,15 @@
-﻿namespace Hypercube.Utilities.Configuration;
+﻿using JetBrains.Annotations;
 
+namespace Hypercube.Utilities.Configuration;
+
+[PublicAPI]
 [AttributeUsage(AttributeTargets.Class)]
-public class ConfigAttribute : Attribute
+public sealed class ConfigAttribute : Attribute
 {
-    public readonly string ConfigFileName;
+    public readonly string FileName;
 
-    public ConfigAttribute(string configFileName)
+    public ConfigAttribute(string fileName)
     {
-        ConfigFileName = configFileName;
+        FileName = fileName;
     }
 }

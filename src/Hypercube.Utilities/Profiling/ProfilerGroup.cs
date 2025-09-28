@@ -12,7 +12,7 @@ public delegate void ProfilerResultHandler(ProfilerResult result);
 /// Represents a profiling group that measures execution time, memory usage, CPU usage, and call counts.
 /// Disposable to automatically stop profiling when the group goes out of scope.
 /// </summary>
-public readonly struct ProfilerGroup
+public readonly struct ProfilerGroup : IDisposable
 {
     private readonly string _groupName;
     private readonly Stopwatch _stopwatch;

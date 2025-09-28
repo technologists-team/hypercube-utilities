@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
+using JetBrains.Annotations;
 
-namespace Hypercube.Utilities.Unsafe;
+namespace Hypercube.Utilities;
 
 public static class HyperUnsafe
 {
@@ -13,11 +14,12 @@ public static class HyperUnsafe
             return *(TResult*)ptr;
     }
     
+    [PublicAPI]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static TResult AsManaged<TValue, TResult>(ref TValue value)
         where TValue : class
         where TResult : class
     {
-        return System.Runtime.CompilerServices.Unsafe.As<TValue, TResult>(ref value);
+        return Unsafe.As<TValue, TResult>(ref value);
     }
 }

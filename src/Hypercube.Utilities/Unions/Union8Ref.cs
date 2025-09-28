@@ -1,6 +1,4 @@
 using System.Runtime.InteropServices;
-using Hypercube.Utilities.Unions.Extensions;
-using Hypercube.Utilities.Unsafe;
 
 namespace Hypercube.Utilities.Unions;
 
@@ -19,7 +17,7 @@ public struct Union8Ref : IUnion
     [FieldOffset(0)] private long _int64;
     [FieldOffset(0)] private ulong _uint64;
     [FieldOffset(0)] private double _double;
-    
+    [FieldOffset(0)] private DateTime _dateTime;
     [FieldOffset(0)] private string? _string;
     [FieldOffset(0)] private object? _object;
     
@@ -146,6 +144,16 @@ public struct Union8Ref : IUnion
         get => Type == UnionTypeCode.Double ? _double : throw new InvalidCastException();
     }
     
+    public DateTime DateTime
+    {
+        set
+        {
+            Type = UnionTypeCode.DateTime;
+            _dateTime = value;
+        }
+        get => Type == UnionTypeCode.DateTime ? _dateTime : throw new InvalidCastException();
+    }
+    
     public string? String
     {
         set
@@ -229,6 +237,11 @@ public struct Union8Ref : IUnion
     public Union8Ref(double value) : this(UnionTypeCode.Double)
     {
         _double = value;
+    }
+    
+    public Union8Ref(DateTime value) : this(UnionTypeCode.DateTime)
+    {
+        _dateTime = value;
     }
     
     public Union8Ref(string value) : this(UnionTypeCode.String)

@@ -1,6 +1,4 @@
 using System.Runtime.InteropServices;
-using Hypercube.Utilities.Unions.Extensions;
-using Hypercube.Utilities.Unsafe;
 
 namespace Hypercube.Utilities.Unions;
 
@@ -19,66 +17,72 @@ public struct Union8Unsafe : IUnion
     [FieldOffset(0)] public long Long;
     [FieldOffset(0)] public ulong Ulong;
     [FieldOffset(0)] public double Double;
+    [FieldOffset(0)] public DateTime DateTime;
     
     public UnionTypeCode Type => UnionTypeCode.Empty;
     
-    public Union8Unsafe(byte value) : this()
+    public Union8Unsafe(byte value)
     {
         Byte = value;
     }
 
-    public Union8Unsafe(sbyte value) : this()
+    public Union8Unsafe(sbyte value)
     {
         SByte = value;
     }
 
-    public Union8Unsafe(short value) : this()
+    public Union8Unsafe(short value)
     {
         Short = value;
     }
 
-    public Union8Unsafe(ushort value) : this()
+    public Union8Unsafe(ushort value)
     {
         UShort = value;
     }
 
-    public Union8Unsafe(char value) : this()
+    public Union8Unsafe(char value)
     {
         Char = value;
     }
 
-    public Union8Unsafe(bool value) : this()
+    public Union8Unsafe(bool value)
     {
         Bool = value;
     }
 
-    public Union8Unsafe(int value) : this()
+    public Union8Unsafe(int value)
     {
         Int = value;
     }
     
-    public Union8Unsafe(uint value) : this()
+    public Union8Unsafe(uint value)
     {
         UInt = value;
     }
     
-    public Union8Unsafe(float value) : this()
+    public Union8Unsafe(float value)
     {
         Float = value;
     }
     
-    public Union8Unsafe(long value) : this()
+    public Union8Unsafe(long value)
     {
         Long = value;
     }
     
-    public Union8Unsafe(ulong value) : this()
+    public Union8Unsafe(ulong value)
     {
         Ulong = value;
     }
     
-    public Union8Unsafe(double value) : this()
+    public Union8Unsafe(double value)
     {
         Double = value;
+    }
+    
+    public Union8Unsafe(DateTime value)
+    {
+        DateTime = value;
     }
 }

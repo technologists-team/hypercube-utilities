@@ -1,5 +1,8 @@
-﻿namespace Hypercube.Utilities.Configuration;
+﻿using JetBrains.Annotations;
 
+namespace Hypercube.Utilities.Configuration;
+
+[PublicAPI]
 public interface IConfigManager
 {
     void Init();

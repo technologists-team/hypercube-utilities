@@ -29,7 +29,7 @@ public class ConfigManager : IConfigManager
                 buffer.Add(jsonName, field);
             }
 
-            Fields.Add(attr.ConfigFileName, buffer);
+            Fields.Add(attr.FileName, buffer);
         }
 
         Load();

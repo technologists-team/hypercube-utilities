@@ -1,6 +1,5 @@
 using System.Runtime.InteropServices;
 using Hypercube.Utilities.Unions.Extensions;
-using Hypercube.Utilities.Unsafe;
 
 namespace Hypercube.Utilities.Unions;
 
@@ -184,7 +183,8 @@ public struct Union4 : IUnion
 
     public T Get<T>() where T : unmanaged
     {
-        switch (typeof(T).GetUnionTypeCode())
+        var code = typeof(T).GetUnionTypeCode();
+        switch (code)
         {
             case UnionTypeCode.Boolean:
                 return HyperUnsafe.AsUnmanaged<bool, T>(Bool);
@@ -213,22 +213,15 @@ public struct Union4 : IUnion
             case UnionTypeCode.Single:
                 return HyperUnsafe.AsUnmanaged<float, T>(Float);
 
-            case UnionTypeCode.Empty:
-            case UnionTypeCode.Object:
-            case UnionTypeCode.Double:
-            case UnionTypeCode.Decimal:
-            case UnionTypeCode.DateTime:
-            case UnionTypeCode.String:
-            case UnionTypeCode.Int64:
-            case UnionTypeCode.UInt64:
             default:
-                throw new InvalidCastException();
+                throw new UnionUnsupportedCastException(this, code);
         }
     }
 
     public void Set<T>(T value) where T : unmanaged
     {
-        switch (typeof(T).GetUnionTypeCode())
+        var code = typeof(T).GetUnionTypeCode();
+        switch (code)
         {
             case UnionTypeCode.Boolean:
                 Bool = HyperUnsafe.AsUnmanaged<T, bool>(value);
@@ -266,16 +259,8 @@ public struct Union4 : IUnion
                 Float = HyperUnsafe.AsUnmanaged<T, float>(value);
                 break;    
             
-            case UnionTypeCode.Empty:
-            case UnionTypeCode.Object:
-            case UnionTypeCode.Double:
-            case UnionTypeCode.Decimal:
-            case UnionTypeCode.DateTime:
-            case UnionTypeCode.String:
-            case UnionTypeCode.Int64:
-            case UnionTypeCode.UInt64:
             default:
-                throw new InvalidCastException();
+                throw new UnionUnsupportedCastException(this, code);
         }
     }
 }

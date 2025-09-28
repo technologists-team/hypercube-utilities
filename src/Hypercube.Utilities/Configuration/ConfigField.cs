@@ -1,5 +1,8 @@
-﻿namespace Hypercube.Utilities.Configuration;
+﻿using JetBrains.Annotations;
 
+namespace Hypercube.Utilities.Configuration;
+
+[PublicAPI]
 public class ConfigField<T>
 {
     public event Action<T>? OnValueChanged;

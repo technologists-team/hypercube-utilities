@@ -284,4 +284,24 @@ public sealed class Union8Tests
             Assert.That(union.Double, Is.EqualTo(6.28));
         });
     }
+        
+    [Test]
+    public void DateTimeTest()
+    {
+        var union = new Union8(new DateTime(2025));
+        
+        Assert.Multiple(() =>
+        {
+            Assert.That(union.Type, Is.EqualTo(UnionTypeCode.DateTime));
+            Assert.That(union.DateTime, Is.EqualTo(new DateTime(2025)));
+        });
+
+        union.DateTime = new DateTime(1984);
+        
+        Assert.Multiple(() =>
+        {
+            Assert.That(union.Type, Is.EqualTo(UnionTypeCode.DateTime));
+            Assert.That(union.DateTime, Is.EqualTo( new DateTime(1984)));
+        });
+    }
 }
