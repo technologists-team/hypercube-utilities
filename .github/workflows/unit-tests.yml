@@ -38,5 +38,5 @@ jobs:
       run: dotnet tool restore
 
     - name: 🛠️ Build and Test (Debug)
-      run: dotnet test --configuration=Debug Hypercube.UnitTests/Hypercube.UnitTests.csproj
+      run: dotnet test --configuration=Debug Hypercube.Utilities.Analyzers/Hypercube.Utilities.Analyzers.csproj
       working-directory: src
