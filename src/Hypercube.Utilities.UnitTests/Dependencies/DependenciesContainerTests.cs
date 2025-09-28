@@ -3,7 +3,7 @@ using Hypercube.Utilities.Dependencies;
 using Hypercube.Utilities.Dependencies.Exceptions;
 using JetBrains.Annotations;
 
-namespace Hypercube.UnitTests.Dependencies;
+namespace Hypercube.Utilities.UnitTests.Dependencies;
 
 [TestFixture]
 public sealed class DependenciesContainerTests

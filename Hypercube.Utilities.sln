@@ -2,11 +2,11 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hypercube.Utilities", "src\Hypercube.Utilities\Hypercube.Utilities.csproj", "{C33D83E9-817B-4D64-B29E-0ED81DA83AF2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hypercube.UnitTests", "src\Hypercube.UnitTests\Hypercube.UnitTests.csproj", "{B7BF24C7-5A5C-4C26-86B3-A678B0C75C25}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hypercube.Utilities.UnitTests", "src\Hypercube.Utilities.UnitTests\Hypercube.Utilities.UnitTests.csproj", "{B7BF24C7-5A5C-4C26-86B3-A678B0C75C25}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hypercube.Analyzers", "src\Hypercube.Analyzers\Hypercube.Analyzers.csproj", "{1AC32600-8A41-49A6-9AA0-9C2FA7CAEA76}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hypercube.Utilities.Analyzers", "src\Hypercube.Utilities.Analyzers\Hypercube.Utilities.Analyzers.csproj", "{1AC32600-8A41-49A6-9AA0-9C2FA7CAEA76}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hypercube.Analyzers.CodeFix", "src\Hypercube.Analyzers.CodeFix\Hypercube.Analyzers.CodeFix.csproj", "{33E0A347-BAE3-43A1-9D6B-E5AF033CCE16}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hypercube.Utilities.Analyzers.CodeFix", "src\Hypercube.Utilities.Analyzers.CodeFix\Hypercube.Utilities.Analyzers.CodeFix.csproj", "{33E0A347-BAE3-43A1-9D6B-E5AF033CCE16}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,6 +1,6 @@
 ﻿using Hypercube.Utilities.Arguments;
 
-namespace Hypercube.UnitTests.Arguments;
+namespace Hypercube.Utilities.UnitTests.Arguments;
 
 [TestFixture]
 public sealed class ArgumentParserTests

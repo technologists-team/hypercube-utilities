@@ -1,6 +1,6 @@
 ﻿using Hypercube.Utilities.Collections;
 
-namespace Hypercube.UnitTests.Collections;
+namespace Hypercube.Utilities.UnitTests.Collections;
 
 [TestFixture]
 public sealed class OrderedActionsTests

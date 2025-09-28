@@ -1,6 +1,6 @@
 using Hypercube.Utilities.Unions;
 
-namespace Hypercube.UnitTests.Unions;
+namespace Hypercube.Utilities.UnitTests.Unions;
 
 [TestFixture]
 public sealed class Union4Tests
