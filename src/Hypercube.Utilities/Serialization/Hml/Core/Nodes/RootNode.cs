@@ -1,6 +1,6 @@
 namespace Hypercube.Utilities.Serialization.Hml.Core.Nodes;
 
-public abstract class Node
+public class RootNode : Node
 {
-    public Node Parent = null!;
+    public Node Child = null!;
 }
