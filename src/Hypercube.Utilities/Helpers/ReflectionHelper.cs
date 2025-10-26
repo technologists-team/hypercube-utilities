@@ -1,5 +1,7 @@
 ﻿using System.Reflection;
+using System.Xml.XPath;
 using Hypercube.Utilities.Extensions;
+using Hypercube.Utilities.Serialization.Hml.Core.Nodes.Value;
 using JetBrains.Annotations;
 
 namespace Hypercube.Utilities.Helpers;
@@ -240,5 +242,71 @@ public static class ReflectionHelper
     public static List<Type> GetInstantiableSubclasses<T>(Assembly assembly)
     {
         return GetInstantiableSubclasses(assembly, typeof(T));
+    }
+
+    public static IReadOnlyList<ValueInfo> GetValueInfos<T>(BindingFlags? flags = null)
+    {
+        return GetValueInfos(typeof(T), flags);
+    }
+
+    public static IReadOnlyList<ValueInfo> GetValueInfos(Type type, BindingFlags? flags = null)
+    {
+        flags ??= DefaultFlags;
+
+        var result = new List<ValueInfo>();
+        
+        foreach (var info in type.GetProperties((BindingFlags) flags))
+        {
+            result.Add(new ValueInfo(info));
+        }
+        
+        foreach (var info in type.GetFields((BindingFlags) flags))
+        {
+            if (info.Name.Contains("k__BackingField"))
+                continue;
+            
+            if (Attribute.IsDefined(info, typeof(System.Runtime.CompilerServices.CompilerGeneratedAttribute)))
+                continue;
+            
+            result.Add(new ValueInfo(info));
+        }
+
+        return result;
+    }
+
+    public readonly struct ValueInfo
+    {
+        private readonly FieldInfo? _fieldInfo;
+        private readonly PropertyInfo? _propertyInfo;
+
+        public string Name => _fieldInfo?.Name ?? _propertyInfo?.Name ?? string.Empty;
+        
+        public ValueInfo(FieldInfo fieldInfo)
+        {
+            _fieldInfo = fieldInfo;
+        }
+
+        public ValueInfo(PropertyInfo propertyInfo)
+        {
+            _propertyInfo = propertyInfo;
+        }
+
+        public object? GetValue(object? obj)
+        {
+            if (_fieldInfo is not null)
+                return _fieldInfo.GetValue(obj);
+            
+            if (_propertyInfo is not null)
+                return _propertyInfo.GetValue(obj);
+
+            // How
+            throw new InvalidOperationException();
+        }
+        
+        public void SetValue(object? obj, object? value)
+        {
+            _fieldInfo?.SetValue(obj, value);
+            _propertyInfo?.SetValue(obj, value);
+        }
     }
 }
