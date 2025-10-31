@@ -6,7 +6,7 @@ namespace Hypercube.Utilities.Serialization.Hml.Core;
 
 public static class HmlParser
 {
-    public static IReadOnlyList<DefinitionNode> Parse(IReadOnlyList<Token> tokens)
+    /*public static IReadOnlyList<DefinitionNode> Parse(IReadOnlyList<Token> tokens)
     {
         var result = new List<DefinitionNode>();
         var pos = 0;
@@ -15,7 +15,7 @@ public static class HmlParser
             result.Add(ParseDefinition(tokens, ref pos));
 
         return result;
-    }
+    }*/
 
     private static Token Consume(IReadOnlyList<Token> tokens, ref int pos, TokenType expected)
     {
@@ -26,7 +26,7 @@ public static class HmlParser
         return token;
     }
 
-    private static DefinitionNode ParseDefinition(IReadOnlyList<Token> tokens, ref int pos)
+    /*private static DefinitionNode ParseDefinition(IReadOnlyList<Token> tokens, ref int pos)
     {
         var name = Consume(tokens, ref pos, TokenType.Identifier).Value;
         Consume(tokens, ref pos, TokenType.LAngle);
@@ -42,13 +42,14 @@ public static class HmlParser
             TypeName = typeName,
             Value = value
         };
-    }
+    }*/
 
     private static ValueNode ParseValue(IReadOnlyList<Token> tokens, ref int pos)
     {
         if (Match(tokens, ref pos, TokenType.LBrace)) return ParseObject(tokens, ref pos);
         if (Match(tokens, ref pos, TokenType.LBracket)) return ParseArray(tokens, ref pos);
-        return ParseLiteral(tokens, ref pos);
+        //return ParseLiteral(tokens, ref pos);
+        return default!;
     }
 
     private static ObjectNode ParseObject(IReadOnlyList<Token> tokens, ref int pos)
@@ -68,24 +69,24 @@ public static class HmlParser
         return obj;
     }
 
-    private static ArrayNode ParseArray(IReadOnlyList<Token> tokens, ref int pos)
+    private static ListNode ParseArray(IReadOnlyList<Token> tokens, ref int pos)
     {
         Consume(tokens, ref pos, TokenType.LBracket);
-        var arr = new ArrayNode();
+        var arr = new ListNode();
 
         while (!Match(tokens, ref pos, TokenType.RBracket))
         {
             var key = Consume(tokens, ref pos, TokenType.Identifier).Value;
             Consume(tokens, ref pos, TokenType.Colon);
             var val = ParseValue(tokens, ref pos);
-            arr.Elements.Add(new KeyValuePair<string, ValueNode>(key, val));
+            //arr.Elements.Add(new KeyValuePair<string, ValueNode>(key, val));
         }
 
         Consume(tokens, ref pos, TokenType.RBracket);
         return arr;
     }
 
-    private static LiteralNode ParseLiteral(IReadOnlyList<Token> tokens, ref int pos)
+   /* private static LiteralNode ParseLiteral(IReadOnlyList<Token> tokens, ref int pos)
     {
         var tok = Peek(tokens, ref pos);
         if (tok.Type is TokenType.String or TokenType.Number or TokenType.Boolean)
@@ -95,7 +96,7 @@ public static class HmlParser
         }
 
         throw new Exception($"Expected literal, got {tok.Type}");
-    }
+    }*/
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static Token Peek(IReadOnlyList<Token> tokens, ref int pos)

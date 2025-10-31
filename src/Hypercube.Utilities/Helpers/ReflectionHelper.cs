@@ -1,7 +1,5 @@
 ﻿using System.Reflection;
-using System.Xml.XPath;
 using Hypercube.Utilities.Extensions;
-using Hypercube.Utilities.Serialization.Hml.Core.Nodes.Value;
 using JetBrains.Annotations;
 
 namespace Hypercube.Utilities.Helpers;
@@ -262,7 +260,7 @@ public static class ReflectionHelper
         
         foreach (var info in type.GetFields((BindingFlags) flags))
         {
-            if (info.Name.Contains("k__BackingField"))
+            if (info.Name.Contains("k__BackingField") || info.Name.Contains("i__Field"))
                 continue;
             
             if (Attribute.IsDefined(info, typeof(System.Runtime.CompilerServices.CompilerGeneratedAttribute)))
