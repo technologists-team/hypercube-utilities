@@ -247,6 +247,11 @@ public static class ReflectionHelper
         return GetValueInfos(typeof(T), flags);
     }
 
+    public static IReadOnlyList<ValueInfo> GetValueInfos(object obj, BindingFlags? flags = null)
+    {
+        return GetValueInfos(obj.GetType(), flags);
+    }
+    
     public static IReadOnlyList<ValueInfo> GetValueInfos(Type type, BindingFlags? flags = null)
     {
         flags ??= DefaultFlags;

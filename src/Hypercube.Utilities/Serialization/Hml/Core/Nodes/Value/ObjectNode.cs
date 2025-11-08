@@ -5,8 +5,7 @@ namespace Hypercube.Utilities.Serialization.Hml.Core.Nodes.Value;
 
 public class ObjectNode : ValueNode
 {
-    public Dictionary<string, ValueNode> Properties1 { get; set; } = new();
-    public List<KeyValuePairNode> Properties { get; set; } = new();
+    public List<KeyValuePairNode> Properties { get; } = [];
 
     public override void OnBuild(Stack<BuildAstStackFrame> stack, Queue<Node> nodes, BuildAstStackFrame frame)
     {
@@ -20,7 +19,7 @@ public class ObjectNode : ValueNode
                 
         Properties.Add(keyValuePair);
         stack.Push(frame);
-        stack.Push(new BuildAstStackFrame() { Node = keyValuePair,  Parent = this });
+        stack.Push(new BuildAstStackFrame(keyValuePair, this));
     } 
 
     public override string Render(Stack<RenderAstStackFrame> stack, StringBuilder buffer, RenderAstStackFrame frame, RenderAstState state, HmlSerializerOptions options)
@@ -30,7 +29,7 @@ public class ObjectNode : ValueNode
             buffer.Append('{');
             state.PushIndent();
             
-            if (options.WriteIndented && Properties.Count != 0)
+            if (options.Indented && Properties.Count != 0)
             {
                 buffer.AppendLine();
                 buffer.Append(state.Indent);
@@ -58,7 +57,7 @@ public class ObjectNode : ValueNode
                 var index = frame.Index;
                 buffer.Append(',');
                 
-                if (options.WriteIndented)
+                if (options.Indented)
                 {
                     buffer.AppendLine();
                     buffer.Append(state.Indent);
@@ -73,7 +72,7 @@ public class ObjectNode : ValueNode
 
         if (frame.State == 2)
         {
-            if (options.WriteIndented)
+            if (options.Indented)
             {
                 buffer.AppendLine();
                 state.PopIndent();

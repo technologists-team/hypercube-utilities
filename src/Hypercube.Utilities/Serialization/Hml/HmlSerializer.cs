@@ -2,12 +2,11 @@ using Hypercube.Utilities.Serialization.Hml.Core;
 
 namespace Hypercube.Utilities.Serialization.Hml;
 
-public sealed class HmlSerializer
+public static class HmlSerializer
 {
     public static string Serialize(object obj, HmlSerializerOptions? options = null)
     {
-        options ??= new HmlSerializerOptions();
-        return HmlCompiler.Serialize(obj, (HmlSerializerOptions) options).ToString();
+        return HmlCompiler.Serialize(obj, options ?? new HmlSerializerOptions());
     }
     
     public static object Deserialize(string content, HmlSerializerOptions? options = null)

@@ -10,7 +10,7 @@ public class RootNode : Node
     public override void OnBuild(Stack<BuildAstStackFrame> stack, Queue<Node> nodes, BuildAstStackFrame frame)
     {
         Child = nodes.Dequeue();
-        stack.Push(new BuildAstStackFrame { Node = Child, Parent = this });
+        stack.Push(new BuildAstStackFrame(Child, this));
     }
 
     public override string Render(Stack<RenderAstStackFrame> stack, StringBuilder buffer, RenderAstStackFrame frame, RenderAstState state, HmlSerializerOptions options)

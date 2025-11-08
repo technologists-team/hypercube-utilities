@@ -62,7 +62,7 @@ public static class HmlParser
             var key = Consume(tokens, ref pos, TokenType.Identifier).Value;
             Consume(tokens, ref pos, TokenType.Colon);
             var val = ParseValue(tokens, ref pos);
-            obj.Properties1[key] = val;
+            obj.Properties.Add(new KeyValuePairNode(new IdentifierNode(key), val));
         }
 
         Consume(tokens, ref pos, TokenType.RBrace);

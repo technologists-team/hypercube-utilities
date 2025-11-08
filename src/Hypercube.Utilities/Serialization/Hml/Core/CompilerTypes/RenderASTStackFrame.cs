@@ -4,7 +4,8 @@ namespace Hypercube.Utilities.Serialization.Hml.Core.CompilerTypes;
 
 public record RenderAstStackFrame
 {
-    public INode Node;
+    public readonly INode Node;
+    
     public int State;
     public int Index;
 

@@ -5,8 +5,20 @@ namespace Hypercube.Utilities.Serialization.Hml.Core.Nodes.Value;
 
 public class KeyValuePairNode : Node
 {
-    public IIdentifierNode Key = null!;
-    public ValueNode Value = null!;
+    public IIdentifierNode Key;
+    public ValueNode Value;
+
+    public KeyValuePairNode()
+    {
+        Key = null!;
+        Value = null!;
+    }
+
+    public KeyValuePairNode(IIdentifierNode key, ValueNode value)
+    {
+        Key = key;
+        Value = value;
+    }
 
     public override void OnBuild(Stack<BuildAstStackFrame> stack, Queue<Node> nodes, BuildAstStackFrame frame)
     {
@@ -19,7 +31,7 @@ public class KeyValuePairNode : Node
                 throw new Exception("");
             
             stack.Push(frame);
-            stack.Push(new BuildAstStackFrame { Node = node, Parent = this});
+            stack.Push(new BuildAstStackFrame(node, this));
             Key = keyNode;
             return;
         }
@@ -28,7 +40,7 @@ public class KeyValuePairNode : Node
             throw new Exception("");
                 
         Value = valueNode;
-        stack.Push(new BuildAstStackFrame { Node = node, Parent = this});
+        stack.Push(new BuildAstStackFrame(node, this));
     }
 
     public override string Render(Stack<RenderAstStackFrame> stack, StringBuilder buffer, RenderAstStackFrame frame, RenderAstState state, HmlSerializerOptions options)
@@ -44,7 +56,7 @@ public class KeyValuePairNode : Node
         {
             buffer.Append(":");
 
-            if (options.WriteIndented)
+            if (options.Indented)
                 buffer.Append(" ");
             
             stack.Push(new RenderAstStackFrame(Value));

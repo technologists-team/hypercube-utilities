@@ -5,7 +5,7 @@ namespace Hypercube.Utilities.Serialization.Hml.Core.Nodes.Value;
 
 public class ListNode : ValueNode
 {
-    public List<ValueNode> Elements { get; set; } = [];
+    public List<ValueNode> Elements { get; } = [];
 
     public override void OnBuild(Stack<BuildAstStackFrame> stack, Queue<Node> nodes, BuildAstStackFrame frame)
     {
@@ -19,7 +19,7 @@ public class ListNode : ValueNode
                 
         Elements.Add(valueNode);
         stack.Push(frame);
-        stack.Push(new BuildAstStackFrame() { Node = valueNode, Parent = this});
+        stack.Push(new BuildAstStackFrame(valueNode, this));
     }
 
     public override string Render(Stack<RenderAstStackFrame> stack, StringBuilder buffer, RenderAstStackFrame frame, RenderAstState state, HmlSerializerOptions options)
@@ -36,7 +36,7 @@ public class ListNode : ValueNode
                 return string.Empty;
             }
             
-            if (options.WriteIndented)
+            if (options.Indented)
             {
                 buffer.AppendLine();
                 buffer.Append(state.Indent);
@@ -57,7 +57,7 @@ public class ListNode : ValueNode
                 var index = frame.Index;
                 buffer.Append(',');
                 
-                if (options.WriteIndented)
+                if (options.Indented)
                 {
                     buffer.AppendLine();
                     buffer.Append(state.Indent);
@@ -72,7 +72,7 @@ public class ListNode : ValueNode
 
         if (frame.State == 2)
         {
-            if (options.WriteIndented)
+            if (options.Indented)
             {
                 buffer.AppendLine();
                 state.PopIndent();

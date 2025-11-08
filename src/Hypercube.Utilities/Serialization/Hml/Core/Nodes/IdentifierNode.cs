@@ -5,11 +5,16 @@ namespace Hypercube.Utilities.Serialization.Hml.Core.Nodes;
 
 public class IdentifierNode : Node, IIdentifierNode
 {
-    public required string Name { get; init; }
-    
+    public string Name { get; }
+
+    public IdentifierNode(string name)
+    {
+        Name = name;
+    }
+
     public override void OnBuild(Stack<BuildAstStackFrame> stack, Queue<Node> nodes, BuildAstStackFrame frame)
     {
-        // Do noting
+        // Do nothing
     }
 
     public override string Render(Stack<RenderAstStackFrame> stack, StringBuilder buffer, RenderAstStackFrame frame, RenderAstState state, HmlSerializerOptions options)
