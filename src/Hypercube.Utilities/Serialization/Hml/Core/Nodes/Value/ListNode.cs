@@ -3,9 +3,9 @@ using Hypercube.Utilities.Serialization.Hml.Core.CompilerTypes;
 
 namespace Hypercube.Utilities.Serialization.Hml.Core.Nodes.Value;
 
-public class ListNode : ValueNode
+public sealed class ListNode : Node, IValueNode
 {
-    public List<ValueNode> Elements { get; } = [];
+    public List<IValueNode> Elements { get; } = [];
 
     public override void OnBuild(Stack<BuildAstStackFrame> stack, Queue<Node> nodes, BuildAstStackFrame frame)
     {
@@ -14,7 +14,7 @@ public class ListNode : ValueNode
         if (nextNode is EndNode)
             return;
                 
-        if (nextNode is not ValueNode valueNode)
+        if (nextNode is not IValueNode valueNode)
             throw new Exception("");
                 
         Elements.Add(valueNode);

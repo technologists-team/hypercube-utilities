@@ -6,7 +6,7 @@ namespace Hypercube.Utilities.Serialization.Hml.Core.Nodes.Value;
 public class KeyValuePairNode : Node
 {
     public IIdentifierNode Key;
-    public ValueNode Value;
+    public IValueNode Value;
 
     public KeyValuePairNode()
     {
@@ -14,10 +14,13 @@ public class KeyValuePairNode : Node
         Value = null!;
     }
 
-    public KeyValuePairNode(IIdentifierNode key, ValueNode value)
+    public KeyValuePairNode(IIdentifierNode key, IValueNode value)
     {
         Key = key;
         Value = value;
+        
+        key.SetParent(this);
+        Value.SetParent(this);
     }
 
     public override void OnBuild(Stack<BuildAstStackFrame> stack, Queue<Node> nodes, BuildAstStackFrame frame)
@@ -36,7 +39,7 @@ public class KeyValuePairNode : Node
             return;
         }
                 
-        if (node is not ValueNode valueNode)
+        if (node is not IValueNode valueNode)
             throw new Exception("");
                 
         Value = valueNode;

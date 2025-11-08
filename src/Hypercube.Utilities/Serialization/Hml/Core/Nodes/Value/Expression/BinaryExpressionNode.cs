@@ -2,12 +2,12 @@ using System.Text;
 using Hypercube.Utilities.Serialization.Hml.Core.CompilerTypes;
 
 namespace Hypercube.Utilities.Serialization.Hml.Core.Nodes.Value.Expression;
-
+/*
 public class BinaryExpressionNode : ExpressionNode
 {
-    public ValueNode Left { get; set; } = null!;
+    public IValueNode Left { get; set; } = null!;
     public string Operator { get; set; } = "";
-    public ValueNode Right { get; set; } = null!;
+    public IValueNode Right { get; set; } = null!;
     public override void OnBuild(Stack<BuildAstStackFrame> stack, Queue<Node> nodes, BuildAstStackFrame frame)
     {
         
@@ -18,3 +18,4 @@ public class BinaryExpressionNode : ExpressionNode
         return string.Empty;
     }
 }
+*/

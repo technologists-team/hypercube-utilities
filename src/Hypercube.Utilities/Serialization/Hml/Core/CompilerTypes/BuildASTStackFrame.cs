@@ -4,10 +4,10 @@ namespace Hypercube.Utilities.Serialization.Hml.Core.CompilerTypes;
 
 public record BuildAstStackFrame
 {
-    public readonly Node Node;
-    public readonly Node Parent;
+    public readonly INode Node;
+    public readonly INode Parent;
 
-    public BuildAstStackFrame(Node node, Node parent)
+    public BuildAstStackFrame(INode node, INode parent)
     {
         Node = node;
         Parent = parent;

@@ -81,14 +81,13 @@ public static class HmlCompiler
     {
         var stack = new Stack<BuildAstStackFrame>();
         var ast = new RootNode();
-        
         stack.Push(new BuildAstStackFrame(ast, null!));
 
         while (stack.Count > 0)
         {
             var frame = stack.Pop();
             
-            frame.Node.Parent = frame.Parent;
+            frame.Node.SetParent(frame.Parent);
             frame.Node.OnBuild(stack, nodes, frame);
         }
 

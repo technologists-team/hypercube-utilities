@@ -3,10 +3,16 @@ using Hypercube.Utilities.Serialization.Hml.Core.CompilerTypes;
 
 namespace Hypercube.Utilities.Serialization.Hml.Core.Nodes.Value;
 
-public class ObjectNode : ValueNode
+public class ObjectNode : Node, IValueNode
 {
     public List<KeyValuePairNode> Properties { get; } = [];
 
+    public void Add(KeyValuePairNode node)
+    {
+        Properties.Add(node);
+        node.SetParent(this);
+    }
+    
     public override void OnBuild(Stack<BuildAstStackFrame> stack, Queue<Node> nodes, BuildAstStackFrame frame)
     {
         var nextNode = nodes.Dequeue();
