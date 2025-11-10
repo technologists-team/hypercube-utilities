@@ -1,5 +1,6 @@
 using System.Text;
 using Hypercube.Utilities.Serialization.Hml.Core.CompilerTypes;
+using Hypercube.Utilities.Serialization.Hml.Exceptions;
 
 namespace Hypercube.Utilities.Serialization.Hml.Core.Nodes;
 
@@ -10,8 +11,8 @@ public abstract class Node : INode
     public void SetParent(INode parent)
     {
         // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
-        if (Parent is not null && Parent != this)
-            throw new Exception();
+        // if (Parent is not null && Parent != this)
+        //    throw new HmlException();
         
         Parent = parent;
     }

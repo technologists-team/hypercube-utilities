@@ -81,6 +81,7 @@ public static class HmlCompiler
     {
         var stack = new Stack<BuildAstStackFrame>();
         var ast = new RootNode();
+        
         stack.Push(new BuildAstStackFrame(ast, null!));
 
         while (stack.Count > 0)
@@ -96,9 +97,11 @@ public static class HmlCompiler
 
     private static StringBuilder RenderAst(RootNode ast, HmlSerializerOptions options)
     {
-        var state = new RenderAstState { IndentSize = options.IndentSize};
         var result = new StringBuilder();
+        
+        var state = new RenderAstState(options.IndentSize);
         var stack = new Stack<RenderAstStackFrame>();
+        
         stack.Push(new RenderAstStackFrame(ast));
 
         while (stack.Count > 0)
@@ -115,11 +118,28 @@ public static class HmlCompiler
         return obj switch
         {
             bool value => new BoolValue(value),
+            
+            // Pointer numbers
             decimal value => new NumberValueNode(value),
-            float value => new NumberValueNode((decimal) value),
             double value => new NumberValueNode((decimal) value),
+            float value => new NumberValueNode((decimal) value),
+            
+            // Numbers
+            long value => new NumberValueNode(value),
+            ulong value => new NumberValueNode(value),
+            int value => new NumberValueNode(value),
+            uint value => new NumberValueNode(value),
+            nint value => new NumberValueNode(value),
+            short value => new NumberValueNode(value),
+            ushort value => new NumberValueNode(value),
+            sbyte value => new NumberValueNode(value),
+            byte value => new NumberValueNode(value),
+            
+            // Strings
             string value => new StringValueNode(value),
             char value => new StringValueNode(value),
+            
+            // Unknown
             _ => new UnknownValueNode(obj)
         };
     }

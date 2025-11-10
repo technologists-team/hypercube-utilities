@@ -61,7 +61,9 @@ public class ObjectNode : Node, IValueNode
             if (frame.Index < Properties.Count)
             {
                 var index = frame.Index;
-                buffer.Append(',');
+                
+                if (options.Eol || !options.Indented)
+                    buffer.Append(';');
                 
                 if (options.Indented)
                 {

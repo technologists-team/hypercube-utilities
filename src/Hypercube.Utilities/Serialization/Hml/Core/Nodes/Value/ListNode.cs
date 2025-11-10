@@ -55,7 +55,9 @@ public sealed class ListNode : Node, IValueNode
             if (frame.Index < Elements.Count)
             {
                 var index = frame.Index;
-                buffer.Append(',');
+                
+                if (options.Eol || !options.Indented)
+                    buffer.Append(';');
                 
                 if (options.Indented)
                 {

@@ -1,14 +1,18 @@
 using System.Runtime.CompilerServices;
 using Hypercube.Utilities.Serialization.Hml.Core.Nodes;
 using Hypercube.Utilities.Serialization.Hml.Core.Nodes.Value;
+using Hypercube.Utilities.Serialization.Hml.Exceptions;
+using JetBrains.Annotations;
 
 namespace Hypercube.Utilities.Serialization.Hml.Core;
 
+[PublicAPI]
 public class HmlParser
 {
-    private IReadOnlyList<Token> _tokens;
+    private readonly IReadOnlyList<Token> _tokens;
+
+    private INode _context = null!;
     private int _position;
-    private INode _context;
 
     private Token Current => _tokens[_position];
     
@@ -41,14 +45,15 @@ public class HmlParser
             }
         }
 
-        return _context;
+        throw new HmlException();
     }
 
     private Token Consume(TokenType expected)
     {
         var token = Current;
         if (token.Type != expected)
-            throw new Exception($"Expected {expected}, got {token.Type}");
+            throw new HmlException($"Expected {expected}, got {token.Type}");
+        
         _position++;
         return token;
     }
@@ -73,8 +78,10 @@ public class HmlParser
 
     private IValueNode ParseValue()
     {
-        if (Match(TokenType.LBrace)) return ParseObject();
-        if (Match(TokenType.LBracket)) return ParseArray();
+        throw new HmlException();
+        
+        //if (Match(TokenType.LBrace)) return ParseObject();
+        //if (Match(TokenType.LBracket)) return ParseArray();
         //return ParseLiteral(tokens, ref pos);
         return default!;
     }
