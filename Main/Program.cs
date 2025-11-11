@@ -23,7 +23,7 @@ public static class Program
         {
             Eol = false,
             Indented = true,
-            IndentSize = 4
+            IndentSize = 2
         };
 
         var serialized = HmlSerializer.Serialize(data, options);
