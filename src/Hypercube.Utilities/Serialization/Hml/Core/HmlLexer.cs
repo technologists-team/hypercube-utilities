@@ -33,7 +33,7 @@ public static class HmlLexer
 
             var value = match.Value;
             
-            if (string.IsNullOrWhiteSpace(value))
+            if (string.IsNullOrWhiteSpace(value) && tokenType != TokenType.EndOfLine)
                 continue;
 
             tokens.Add(new Token(tokenType, value));

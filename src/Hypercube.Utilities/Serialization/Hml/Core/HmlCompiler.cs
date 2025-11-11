@@ -1,146 +1,152 @@
 using System.Collections;
 using System.Text;
 using Hypercube.Utilities.Helpers;
+using Hypercube.Utilities.Serialization.Hml.Core.CompilerTypes;
+using Hypercube.Utilities.Serialization.Hml.Core.Nodes;
+using Hypercube.Utilities.Serialization.Hml.Core.Nodes.Value;
+using Hypercube.Utilities.Serialization.Hml.Core.Nodes.Value.Primitives;
 
 namespace Hypercube.Utilities.Serialization.Hml.Core;
 
 public static class HmlCompiler
 {
-    private record StackItem(object? Obj, int Indent, string? Name, bool IsClosing = false, bool Enumerated = false);
-
-    public static StringBuilder Serialize(object? obj, HmlSerializerOptions options)
+    public static string Serialize(object? obj, HmlSerializerOptions options)
     {
-        var builder = new StringBuilder();
-        var stack = new Stack<StackItem>();
-
-        stack.Push(new StackItem(obj, 0, null));
+        return SerializeToBuilder(obj, options).ToString();
+    }
+    
+    public static StringBuilder SerializeToBuilder(object? obj, HmlSerializerOptions options)
+    {
+        var stack = new Stack<object?>();
+        var nodeQueue = new Queue<Node>();
+        
+        stack.Push(obj);
 
         while (stack.Count > 0)
         {
             var current = stack.Pop();
-            var indent = new string(' ', current.Indent * options.IndentSize);
-
-            if (current.IsClosing)
+            if (current is Node currentNode)
             {
-                builder.Append(indent);
-                
-                if (current.Obj is not null)
-                    builder.Append(current.Obj);
-
-                if (current.Enumerated)
-                    builder.Append(',');
-
-                builder.AppendLine();
+                nodeQueue.Enqueue(currentNode);
                 continue;
             }
 
-            if (current.Obj is null)
+            // Null
+            if (current is null)
             {
-                builder.Append(indent);
-
-                if (current.Name is not null)
-                {
-                    builder.Append(current.Name);
-                    builder.Append(": ");
-                }
-                
-                builder.AppendLine(current.Enumerated ? "null," : "null");
+                nodeQueue.Enqueue(new NullValueNode());
                 continue;
             }
 
-            var type = current.Obj.GetType();
-            if (IsSimpleType(current.Obj) || IsStringType(current.Obj))
+            // Booleans, numbers, strings
+            if (IsPrimitiveType(current))
             {
-                builder.Append(indent);
-
-                if (current.Name is not null)
-                {
-                    builder.Append(current.Name);
-                    builder.Append(": ");
-                }
-                
-                builder.Append(FormatValue(current.Obj, in options));
-
-                if (current.Enumerated)
-                    builder.Append(',');
-                
-                builder.AppendLine();
-                continue;
-            }
-            
-            if (current.Obj is IEnumerable enumerable)
-            {
-                builder.Append(indent);
-                
-                if (current.Name is not null)
-                {
-                    builder.Append(current.Name);
-                    builder.Append(": ");
-                }
-
-                builder.Append('[');
-                builder.AppendLine();
-                
-                var items = new List<object>();
-                foreach (var e in enumerable)
-                    items.Add(e!);
-                
-                stack.Push(new StackItem("]", current.Indent, null, true, Enumerated: current.Enumerated));
-                for (var i = items.Count - 1; i >= 0; i--)
-                    stack.Push(new StackItem(items[i], current.Indent + 1, null, Enumerated: i != items.Count - 1 || options.TrailingComma));
-                
+                nodeQueue.Enqueue(ToPrimitiveValueNode(current));
                 continue;
             }
 
-            builder.Append(indent);
-            
-            if (current.Name is not null)
+            // Arrays, lists
+            if (current is IList list)
             {
-                builder.Append(current.Name);
-                builder.Append(": ");
+                nodeQueue.Enqueue(new ListNode());
+                stack.Push(new EndNode());
+                
+                for (var i = list.Count - 1; i >= 0; i--)
+                    stack.Push(list[i]);
+                
+                continue;
             }
             
-            builder.Append('{');
-            builder.AppendLine();
+            // Object
+            var values = ReflectionHelper.GetValueInfos(current);
             
-            var values = ReflectionHelper.GetValueInfos(type);
-            
-            stack.Push(new StackItem("}", current.Indent, null, true, Enumerated: current.Enumerated));
+            nodeQueue.Enqueue(new ObjectNode());
+            stack.Push(new EndNode());
 
             for (var i = values.Count - 1; i >= 0; i--)
             {
                 var valueInfo = values[i];
-                var value = valueInfo.GetValue(current.Obj);
-                stack.Push(new StackItem(value!, current.Indent + 1, valueInfo.Name));
+                var value = valueInfo.GetValue(current);
+                
+                stack.Push(value);
+                stack.Push(new IdentifierNode(valueInfo.Name));
+                stack.Push(new KeyValuePairNode());
             }
         }
-
-        return builder;
+        
+        return RenderAst(BuildAst(nodeQueue), options);
     }
 
-    private static bool IsSimpleType(object obj)
+    private static RootNode BuildAst(Queue<Node> nodes)
     {
-        var type = obj.GetType();
-        return type.IsPrimitive || type.IsEnum || type == typeof(decimal) || type == typeof(bool);
-    }
-    
-    private static bool IsStringType(object obj)
-    {
-        var type = obj.GetType();
-        return type == typeof(string) || type == typeof(char);
+        var stack = new Stack<BuildAstStackFrame>();
+        var ast = new RootNode();
+        
+        stack.Push(new BuildAstStackFrame(ast, null!));
+
+        while (stack.Count > 0)
+        {
+            var frame = stack.Pop();
+            
+            frame.Node.SetParent(frame.Parent);
+            frame.Node.OnBuild(stack, nodes, frame);
+        }
+
+        return ast;
     }
 
-    private static string FormatValue(object obj, in HmlSerializerOptions options)
+    private static StringBuilder RenderAst(RootNode ast, HmlSerializerOptions options)
+    {
+        var result = new StringBuilder();
+        
+        var state = new RenderAstState(options.IndentSize);
+        var stack = new Stack<RenderAstStackFrame>();
+        
+        stack.Push(new RenderAstStackFrame(ast));
+
+        while (stack.Count > 0)
+        {
+            var frame = stack.Pop();
+            result.Append(frame.Node.Render(stack, result, frame, state, options));
+        }
+        
+        return result;
+    }
+
+    private static PrimitiveValueNode ToPrimitiveValueNode(object obj)
     {
         return obj switch
         {
-            bool value => value ? "true" : "false",
-            decimal value => value.ToString(options.CultureInfo),
-            float value => value.ToString(options.CultureInfo),
-            double value => value.ToString(options.CultureInfo),
-            string value => $"'{value}'",
-            char value => $"'{value}'",
-            _ => obj.ToString()!
+            bool value => new BoolValue(value),
+            
+            // Pointer numbers
+            decimal value => new NumberValueNode(value),
+            double value => new NumberValueNode((decimal) value),
+            float value => new NumberValueNode((decimal) value),
+            
+            // Numbers
+            long value => new NumberValueNode(value),
+            ulong value => new NumberValueNode(value),
+            int value => new NumberValueNode(value),
+            uint value => new NumberValueNode(value),
+            nint value => new NumberValueNode(value),
+            short value => new NumberValueNode(value),
+            ushort value => new NumberValueNode(value),
+            sbyte value => new NumberValueNode(value),
+            byte value => new NumberValueNode(value),
+            
+            // Strings
+            string value => new StringValueNode(value),
+            char value => new StringValueNode(value),
+            
+            // Unknown
+            _ => new UnknownValueNode(obj)
         };
+    }
+
+    private static bool IsPrimitiveType(object obj)
+    {
+        var type = obj.GetType();
+        return type.IsPrimitive || type.IsEnum || type == typeof(string);
     }
 }
