@@ -8,6 +8,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hypercube.Utilities.Analyze
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hypercube.Utilities.Analyzers.CodeFix", "src\Hypercube.Utilities.Analyzers.CodeFix\Hypercube.Utilities.Analyzers.CodeFix.csproj", "{33E0A347-BAE3-43A1-9D6B-E5AF033CCE16}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Main", "Main\Main.csproj", "{6BB9C8F4-4BA5-45EA-8924-1DE5771DF4BF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +32,9 @@ Global
 		{33E0A347-BAE3-43A1-9D6B-E5AF033CCE16}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{33E0A347-BAE3-43A1-9D6B-E5AF033CCE16}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{33E0A347-BAE3-43A1-9D6B-E5AF033CCE16}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6BB9C8F4-4BA5-45EA-8924-1DE5771DF4BF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6BB9C8F4-4BA5-45EA-8924-1DE5771DF4BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6BB9C8F4-4BA5-45EA-8924-1DE5771DF4BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6BB9C8F4-4BA5-45EA-8924-1DE5771DF4BF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
