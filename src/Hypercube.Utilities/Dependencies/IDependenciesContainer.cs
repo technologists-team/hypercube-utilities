@@ -93,7 +93,7 @@ public interface IDependenciesContainer
     /// </summary>
     /// <typeparam name="T">The type to resolve.</typeparam>
     /// <returns>The resolved instance.</returns>
-    T Resolve<T>();
+    T Resolve<T>(object? context = null);
 
     /// <summary>
     /// Resolves a type to its registered instance or creates a new instance.
@@ -102,7 +102,7 @@ public interface IDependenciesContainer
     /// <returns>The resolved instance.</returns>
     /// <exception cref="CircularDependencyException">Thrown if circular dependencies are detected.</exception>
     /// <exception cref="TypeNotRegisteredException">Thrown if the type is not registered.</exception>
-    object Resolve(Type type);
+    object Resolve(Type type, object? context = null);
 
     /// <summary>
     /// Resolves all registered types that have not yet been resolved.

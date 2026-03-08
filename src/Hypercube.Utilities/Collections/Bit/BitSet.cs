@@ -1,14 +1,21 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Text;
+using JetBrains.Annotations;
 
-namespace Hypercube.Utilities.Collections;
+namespace Hypercube.Utilities.Collections.Bit;
 
 /// <summary>
 /// A bit set that supports an arbitrary number of bits beyond 64.
 /// </summary>
-public sealed class BitSet : IEquatable<BitSet>
+[PublicAPI]
+public sealed class BitSet : IEquatable<BitSet>, IBitSet
 {
-    private const int BitsPerElement = 64;
+    public static BitSet Empty => new(1);
+    
+    private const int Shift = 6; // log2(64)
+    private const int BitsPerElement = 1 << Shift; // 64
+    private const int OffsetMask = BitsPerElement - 1; // 63
     private const int MinSizeValue = 1;
     
     /// <summary>
@@ -18,6 +25,8 @@ public sealed class BitSet : IEquatable<BitSet>
     
     private readonly ulong[] _bits;
 
+    public int Length => _bits.Length;
+    
     /// <summary>
     /// Initializes a new instance of the <see cref="BitSet"/> class with the specified number of bits.
     /// </summary>
@@ -29,7 +38,7 @@ public sealed class BitSet : IEquatable<BitSet>
             throw new ArgumentOutOfRangeException(nameof(size), $"Size must be at least {MinSizeValue}.");
 
         Size = size;
-        _bits = new ulong[(size + 63) / BitsPerElement];
+        _bits = new ulong[GetBucketCount(size)];
     }
     
     /// <summary>
@@ -40,7 +49,7 @@ public sealed class BitSet : IEquatable<BitSet>
     public void Set(int index)
     {
         ValidateIndex(index);
-        _bits[index / BitsPerElement] |= 1ul << (index % BitsPerElement);
+        _bits[index >> Shift] |= BitMask(index);
     }
 
     /// <summary>
@@ -48,10 +57,10 @@ public sealed class BitSet : IEquatable<BitSet>
     /// </summary>
     /// <param name="index">The bit index to clear.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Clear(int index)
+    public void Reset(int index)
     {
         ValidateIndex(index);
-        _bits[index / BitsPerElement] &= ~(1ul << (index % BitsPerElement));
+        _bits[index >> Shift] &= ~BitMask(index);
     }
 
     /// <summary>
@@ -63,8 +72,11 @@ public sealed class BitSet : IEquatable<BitSet>
     public bool Has(int index)
     {
         ValidateIndex(index);
-        return (_bits[index / BitsPerElement] & (1ul << (index % BitsPerElement))) != 0;
+        return (_bits[index >> Shift] & BitMask(index)) != 0;
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Clear() => Array.Clear(_bits, 0, _bits.Length);
 
     /// <summary>
     /// Throws an exception if the index is out of bounds.
@@ -157,6 +169,126 @@ public sealed class BitSet : IEquatable<BitSet>
         return result;
     }
     
+    public bool All(BitSet other)
+    {
+        // (other & ~this) != 0
+        
+        if (Size != other.Size)
+            throw new ArgumentException("BitSets must have the same size.");
+
+        var a = _bits;
+        var b = other._bits;
+
+        var length = a.Length;
+        var i = 0;
+
+        if (Vector.IsHardwareAccelerated)
+        {
+            var simdCount = Vector<ulong>.Count;
+            var simdEnd = length - (length % simdCount);
+
+            for (; i < simdEnd; i += simdCount)
+            {
+                var va = new Vector<ulong>(a, i);
+                var vb = new Vector<ulong>(b, i);
+
+                var diff = vb & ~va;
+
+                if (!Vector.EqualsAll(diff, Vector<ulong>.Zero))
+                    return false;
+            }
+        }
+
+        for (; i < length; i++)
+        {
+            if ((b[i] & ~a[i]) != 0)
+                return false;
+        }
+
+        return true;
+    }
+    
+    
+    public bool Any(BitSet other)
+    {
+        // (this & other) != 0
+        
+        if (Size != other.Size)
+            throw new ArgumentException("BitSets must have the same size.");
+
+        var a = _bits;
+        var b = other._bits;
+
+        var length = a.Length;
+        var i = 0;
+
+        if (Vector.IsHardwareAccelerated)
+        {
+            var simdCount = Vector<ulong>.Count;
+            var simdEnd = length - (length % simdCount);
+
+            for (; i < simdEnd; i += simdCount)
+            {
+                var va = new Vector<ulong>(a, i);
+                var vb = new Vector<ulong>(b, i);
+
+                var and = va & vb;
+
+                if (!Vector.EqualsAll(and, Vector<ulong>.Zero))
+                    return true;
+            }
+        }
+
+        // scalar tail
+        for (; i < length; i++)
+        {
+            if ((a[i] & b[i]) != 0)
+                return true;
+        }
+
+        return false;
+    }
+    
+    public bool None(BitSet other)
+    {
+        // (this & other) == 0.
+        
+        if (Size != other.Size)
+            throw new ArgumentException("BitSets must have the same size.");
+
+        var a = _bits;
+        var b = other._bits;
+
+        var length = a.Length;
+        var i = 0;
+
+        if (Vector.IsHardwareAccelerated)
+        {
+            var simdCount = Vector<ulong>.Count;
+            var simdEnd = length - (length % simdCount);
+
+            for (; i < simdEnd; i += simdCount)
+            {
+                var va = new Vector<ulong>(a, i);
+                var vb = new Vector<ulong>(b, i);
+
+                var and = va & vb;
+
+                if (!Vector.EqualsAll(and, Vector<ulong>.Zero))
+                    return false;
+            }
+        }
+
+        // scalar tail
+        for (; i < length; i++)
+        {
+            if ((a[i] & b[i]) != 0)
+                return false;
+        }
+
+        return true;
+    }
+    
     /// <summary>
     /// Overloads the equality operator (==) to compare two <see cref="BitSet"/> objects.
     /// </summary>
@@ -184,7 +316,24 @@ public sealed class BitSet : IEquatable<BitSet>
             throw new ArgumentException("BitSets must have the same size.");
 
         var result = new BitSet(a.Size);
-        for (var i = 0; i < a._bits.Length; i++)
+        var length = a._bits.Length;
+        
+        var i = 0;
+        if (Vector.IsHardwareAccelerated)
+        {
+            var simdCount = Vector<ulong>.Count;
+            var simdEnd = length - length % simdCount;
+
+            for (; i < simdEnd; i += simdCount)
+            {
+                var va = new Vector<ulong>(a._bits, i);
+                var vb = new Vector<ulong>(b._bits, i);
+                (va | vb).CopyTo(result._bits, i);
+            }
+        }
+
+        // scalar tail
+        for (; i < length; i++)
             result._bits[i] = a._bits[i] | b._bits[i];
 
         return result;
@@ -199,11 +348,28 @@ public sealed class BitSet : IEquatable<BitSet>
             throw new ArgumentException("BitSets must have the same size.");
 
         var result = new BitSet(a.Size);
-        for (var i = 0; i < a._bits.Length; i++)
+        var length = a._bits.Length;
+        var i = 0;
+
+        if (Vector.IsHardwareAccelerated)
+        {
+            var simdCount = Vector<ulong>.Count;
+            var simdEnd = length - length % simdCount;
+
+            for (; i < simdEnd; i += simdCount)
+            {
+                var va = new Vector<ulong>(a._bits, i);
+                var vb = new Vector<ulong>(b._bits, i);
+                (va & vb).CopyTo(result._bits, i);
+            }
+        }
+
+        for (; i < length; i++)
             result._bits[i] = a._bits[i] & b._bits[i];
 
         return result;
     }
+
 
     /// <summary>
     /// Performs a bitwise XOR operation between two bitsets.
@@ -214,7 +380,23 @@ public sealed class BitSet : IEquatable<BitSet>
             throw new ArgumentException("BitSets must have the same size.");
 
         var result = new BitSet(a.Size);
-        for (var i = 0; i < a._bits.Length; i++)
+        var length = a._bits.Length;
+        var i = 0;
+
+        if (Vector.IsHardwareAccelerated)
+        {
+            var simdCount = Vector<ulong>.Count;
+            var simdEnd = length - length % simdCount;
+
+            for (; i < simdEnd; i += simdCount)
+            {
+                var va = new Vector<ulong>(a._bits, i);
+                var vb = new Vector<ulong>(b._bits, i);
+                (va ^ vb).CopyTo(result._bits, i);
+            }
+        }
+
+        for (; i < length; i++)
             result._bits[i] = a._bits[i] ^ b._bits[i];
 
         return result;
@@ -226,16 +408,35 @@ public sealed class BitSet : IEquatable<BitSet>
     public static BitSet operator ~(BitSet a)
     {
         var result = new BitSet(a.Size);
+        var length = a._bits.Length;
+        var i = 0;
 
-        // Invert all bits in each block
-        for (var i = 0; i < a._bits.Length; i++)
+        if (Vector.IsHardwareAccelerated)
+        {
+            int simdCount = Vector<ulong>.Count;
+            int simdEnd = length - (length % simdCount);
+
+            for (; i < simdEnd; i += simdCount)
+            {
+                var va = new Vector<ulong>(a._bits, i);
+                (~va).CopyTo(result._bits, i);
+            }
+        }
+
+        for (; i < length; i++)
             result._bits[i] = ~a._bits[i];
 
-        // Trim excess bits in the last block
+        // trim excess bits in last ulong
         var lastBitCount = a.Size % BitsPerElement;
         if (lastBitCount > 0)
             result._bits[^1] &= (1ul << lastBitCount) - 1;
 
         return result;
     }
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static ulong BitMask(int index) => 1ul << (index & OffsetMask);
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static int GetBucketCount(int size) => (size + OffsetMask) >> Shift;
 }

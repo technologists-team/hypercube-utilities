@@ -137,15 +137,15 @@ public class DependenciesContainer : IDependenciesContainer
     #region Resolve
     
     /// <inheritdoc/>
-    public T Resolve<T>()
+    public T Resolve<T>(object? context = null)
     {
-        return (T) Resolve(typeof(T));
+        return (T) Resolve(typeof(T), context);
     }
     
     /// <inheritdoc/>
-    public object Resolve(Type type)
+    public object Resolve(Type type, object? context = null)
     {
-        return Resolve(type, null);
+        return ResolveInternal(type, context);
     }
     
     /// <inheritdoc/>
@@ -275,7 +275,7 @@ public class DependenciesContainer : IDependenciesContainer
 
         object LocalResolve(Type localType, object injected)
         {
-            var resolved = Resolve(localType, injected);
+            var resolved = ResolveInternal(localType, injected);
             if (autoInject)
                 Inject(resolved, autoInject: true);
             
@@ -283,7 +283,7 @@ public class DependenciesContainer : IDependenciesContainer
         }
     }
 
-    private object Resolve(Type type, object? injected)
+    private object ResolveInternal(Type type, object? injected)
     {
         lock (_lock)
         {
