@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 
 namespace Hypercube.Utilities.Collections;
@@ -34,13 +35,17 @@ public class NumPool<T> where T : struct, INumber<T>
     /// greater than the current counter,
     /// or already present in the released stack.
     /// </exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Release(T value)
     {
-        if (value < T.Zero || value > _counter || _released.Contains(value))
+        if (Invalid(value))
             throw new ArgumentException("Invalid number to release.", nameof(value));
 
         _released.Push(value);
     }
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool Invalid(T value) => value < T.Zero || value > _counter || _released.Contains(value);
 
     /// <summary>
     /// Generates a new sequential number.

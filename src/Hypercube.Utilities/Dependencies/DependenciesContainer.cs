@@ -18,7 +18,7 @@ public class DependenciesContainer : IDependenciesContainer
     /// <summary>
     /// The parent container for cascading dependency resolution.
     /// </summary>
-    private readonly DependenciesContainer? _parent;
+    private readonly IDependenciesContainer? _parent;
     
     /// <summary>
     /// A dictionary that stores the registered dependencies by their type.
@@ -40,13 +40,13 @@ public class DependenciesContainer : IDependenciesContainer
     /// <summary>
     /// Lock object to ensure thread safety.
     /// </summary>
-    private readonly object _lock = new();
+    private readonly Lock _lock = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DependenciesContainer"/> class.
     /// </summary>
     /// <param name="parent">An optional parent container for cascading resolution.</param>
-    public DependenciesContainer(DependenciesContainer? parent = null)
+    public DependenciesContainer(IDependenciesContainer? parent = null)
     {
         _parent = parent;
     }

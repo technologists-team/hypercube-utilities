@@ -1,4 +1,4 @@
-﻿using Hypercube.Utilities.Collections;
+﻿using Hypercube.Utilities.Collections.Bit;
 
 namespace Hypercube.Utilities.UnitTests.Collections;
 
@@ -36,7 +36,7 @@ public sealed class BitSetTests
     {
         var bitSet = new BitSet(64);
         bitSet.Set(10);
-        bitSet.Clear(10);
+        bitSet.Reset(10);
         
         Assert.That(bitSet.Has(10), Is.False);
     }
@@ -170,6 +170,68 @@ public sealed class BitSetTests
             Assert.That(result.Has(1), Is.True);
             Assert.That(result.Has(2), Is.False);
             Assert.That(result.Has(3), Is.True);
+        }
+    }
+    
+    [Test]
+    public void AllTest()
+    {
+        var mask = new BitSet(8);
+        mask.Set(1);
+        mask.Set(3);
+
+        var bitSet = new BitSet(8);
+        bitSet.Set(1);
+        bitSet.Set(3);
+        bitSet.Set(5);
+
+        var missing = new BitSet(8);
+        missing.Set(1);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(mask.All(bitSet), Is.True);
+            Assert.That(mask.All(missing), Is.False);
+        }
+    }
+
+    [Test]
+    public void AnyTest()
+    {
+        var mask = new BitSet(8);
+        mask.Set(1);
+        mask.Set(3);
+
+        var bitSet = new BitSet(8);
+        bitSet.Set(3);
+
+        var none = new BitSet(8);
+        none.Set(5);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(mask.Any(bitSet), Is.True);
+            Assert.That(mask.Any(none), Is.False);
+        }
+    }
+
+    [Test]
+    public void NoneTest()
+    {
+        var mask = new BitSet(8);
+        mask.Set(1);
+        mask.Set(3);
+
+        var bitSet = new BitSet(8);
+        bitSet.Set(5);
+
+        var conflict = new BitSet(8);
+        conflict.Set(3);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(mask.None(bitSet), Is.True); 
+            Assert.That(mask.None(conflict), Is.False);
         }
     }
 }

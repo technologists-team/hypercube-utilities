@@ -18,7 +18,7 @@ public abstract class Logger : ILogger
         if (level < LogLevel)
             return;
         
-        Echo($"{GetColor(level)}[{level}] {message}{Ansi.Reset}");
+        Echo($"{GetColor(level)}[{level}]{Ansi.Reset} {message}{Ansi.Reset}");
     }
 
     /// <inheritdoc/>
@@ -91,8 +91,8 @@ public abstract class Logger : ILogger
         return level switch
         {
             LogLevel.Trace => Ansi.BrightBlack,
-            LogLevel.Debug => Ansi.Cyan,
-            LogLevel.Info => Ansi.White,
+            LogLevel.Debug => Ansi.Magenta,
+            LogLevel.Info => Ansi.Green,
             LogLevel.Warning => Ansi.Yellow,
             LogLevel.Error => Ansi.Red,
             LogLevel.Critical => $"{Ansi.BackgroundRed}{Ansi.Black}",

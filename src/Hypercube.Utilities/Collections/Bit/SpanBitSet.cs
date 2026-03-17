@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 
@@ -8,6 +9,7 @@ using JetBrains.Annotations;
 namespace Hypercube.Utilities.Collections.Bit;
 
 [PublicAPI]
+[DebuggerDisplay("{ToString()}")]
 public ref struct SpanBitSet<T> : IBitSet
     where T : unmanaged, IBinaryInteger<T>, IUnsignedNumber<T>
 {

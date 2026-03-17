@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Text;
 using JetBrains.Annotations;
@@ -9,6 +10,7 @@ namespace Hypercube.Utilities.Collections.Bit;
 /// A bit set that supports an arbitrary number of bits beyond 64.
 /// </summary>
 [PublicAPI]
+[DebuggerDisplay("{ToString()}")]
 public sealed class BitSet : IEquatable<BitSet>, IBitSet
 {
     public static BitSet Empty => new(1);
@@ -24,8 +26,10 @@ public sealed class BitSet : IEquatable<BitSet>, IBitSet
     public readonly int Size;
     
     private readonly ulong[] _bits;
-
+    private int _setCount;
+    
     public int Length => _bits.Length;
+    public bool IsZero => _setCount == 0;
     
     /// <summary>
     /// Initializes a new instance of the <see cref="BitSet"/> class with the specified number of bits.
@@ -49,7 +53,15 @@ public sealed class BitSet : IEquatable<BitSet>, IBitSet
     public void Set(int index)
     {
         ValidateIndex(index);
-        _bits[index >> Shift] |= BitMask(index);
+
+        var bucketIndex = index >> Shift;
+        ref var bucket = ref _bits[bucketIndex];
+
+        var before = bucket;
+        bucket |= BitMask(index);
+
+        if (bucket != before)
+            _setCount++;
     }
 
     /// <summary>
@@ -60,7 +72,15 @@ public sealed class BitSet : IEquatable<BitSet>, IBitSet
     public void Reset(int index)
     {
         ValidateIndex(index);
-        _bits[index >> Shift] &= ~BitMask(index);
+
+        var bucketIndex = index >> Shift;
+        ref var bucket = ref _bits[bucketIndex];
+
+        var before = bucket;
+        bucket &= ~BitMask(index);
+
+        if (bucket != before)
+            _setCount--;
     }
 
     /// <summary>
@@ -171,76 +191,83 @@ public sealed class BitSet : IEquatable<BitSet>, IBitSet
     
     public bool All(BitSet other)
     {
-        // (other & ~this) != 0
+        // (this & ~other) == 0
         
-        if (Size != other.Size)
-            throw new ArgumentException("BitSets must have the same size.");
-
         var a = _bits;
         var b = other._bits;
 
-        var length = a.Length;
+        var minLength = a.Length < b.Length ? a.Length : b.Length;
         var i = 0;
 
         if (Vector.IsHardwareAccelerated)
         {
-            var simdCount = Vector<ulong>.Count;
-            var simdEnd = length - (length % simdCount);
+            var simd = Vector<ulong>.Count;
+            var simdEnd = minLength - (minLength % simd);
 
-            for (; i < simdEnd; i += simdCount)
+            var acc = Vector<ulong>.Zero;
+
+            for (; i < simdEnd; i += simd)
             {
                 var va = new Vector<ulong>(a, i);
                 var vb = new Vector<ulong>(b, i);
 
-                var diff = vb & ~va;
-
-                if (!Vector.EqualsAll(diff, Vector<ulong>.Zero))
-                    return false;
+                acc |= va & ~vb;
             }
+
+            if (!Vector.EqualsAll(acc, Vector<ulong>.Zero))
+                return false;
         }
 
-        for (; i < length; i++)
+        for (; i < minLength; i++)
         {
-            if ((b[i] & ~a[i]) != 0)
+            if ((a[i] & ~b[i]) != 0)
+                return false;
+        }
+        
+        for (var j = minLength; j < a.Length; j++)
+        {
+            if (a[j] != 0)
                 return false;
         }
 
         return true;
     }
-    
+
+    public bool AnyOrEmpty(BitSet other)
+    {
+        return Any(other) || IsZero;
+    }
     
     public bool Any(BitSet other)
     {
         // (this & other) != 0
         
-        if (Size != other.Size)
-            throw new ArgumentException("BitSets must have the same size.");
-
         var a = _bits;
         var b = other._bits;
 
-        var length = a.Length;
+        var minLength = a.Length < b.Length ? a.Length : b.Length;
         var i = 0;
 
         if (Vector.IsHardwareAccelerated)
         {
-            var simdCount = Vector<ulong>.Count;
-            var simdEnd = length - (length % simdCount);
+            var simd = Vector<ulong>.Count;
+            var simdEnd = minLength - minLength % simd;
 
-            for (; i < simdEnd; i += simdCount)
+            var acc = Vector<ulong>.Zero;
+
+            for (; i < simdEnd; i += simd)
             {
                 var va = new Vector<ulong>(a, i);
                 var vb = new Vector<ulong>(b, i);
 
-                var and = va & vb;
-
-                if (!Vector.EqualsAll(and, Vector<ulong>.Zero))
-                    return true;
+                acc |= va & vb;
             }
+
+            if (!Vector.EqualsAll(acc, Vector<ulong>.Zero))
+                return true;
         }
 
-        // scalar tail
-        for (; i < length; i++)
+        for (; i < minLength; i++)
         {
             if ((a[i] & b[i]) != 0)
                 return true;
@@ -251,36 +278,34 @@ public sealed class BitSet : IEquatable<BitSet>, IBitSet
     
     public bool None(BitSet other)
     {
-        // (this & other) == 0.
+        // (this & other) == 0
         
-        if (Size != other.Size)
-            throw new ArgumentException("BitSets must have the same size.");
-
         var a = _bits;
         var b = other._bits;
 
-        var length = a.Length;
+        var minLength = a.Length < b.Length ? a.Length : b.Length;
         var i = 0;
 
         if (Vector.IsHardwareAccelerated)
         {
-            var simdCount = Vector<ulong>.Count;
-            var simdEnd = length - (length % simdCount);
+            var simd = Vector<ulong>.Count;
+            var simdEnd = minLength - (minLength % simd);
 
-            for (; i < simdEnd; i += simdCount)
+            var acc = Vector<ulong>.Zero;
+
+            for (; i < simdEnd; i += simd)
             {
                 var va = new Vector<ulong>(a, i);
                 var vb = new Vector<ulong>(b, i);
 
-                var and = va & vb;
-
-                if (!Vector.EqualsAll(and, Vector<ulong>.Zero))
-                    return false;
+                acc |= va & vb;
             }
+
+            if (!Vector.EqualsAll(acc, Vector<ulong>.Zero))
+                return false;
         }
 
-        // scalar tail
-        for (; i < length; i++)
+        for (; i < minLength; i++)
         {
             if ((a[i] & b[i]) != 0)
                 return false;
