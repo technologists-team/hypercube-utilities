@@ -4,14 +4,8 @@ using Hypercube.Utilities.Serialization.Hml.Core.Nodes;
 namespace Hypercube.Utilities.Serialization.Hml.Core.CompilerTypes;
 
 [DebuggerDisplay("{Node} ({Parent})")]
-public record BuildAstStackFrame
+public record BuildAstStackFrame(INode Node, INode Parent)
 {
-    public readonly INode Node;
-    public readonly INode Parent;
-
-    public BuildAstStackFrame(INode node, INode parent)
-    {
-        Node = node;
-        Parent = parent;
-    }
+    public readonly INode Node = Node;
+    public readonly INode Parent = Parent;
 }

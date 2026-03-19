@@ -3,14 +3,9 @@ using Hypercube.Utilities.Serialization.Hml.Core.CompilerTypes;
 
 namespace Hypercube.Utilities.Serialization.Hml.Core.Nodes;
 
-public class IdentifierNode : Node, IIdentifierNode
+public class IdentifierNode(string name) : Node, IIdentifierNode
 {
-    public string Name { get; }
-
-    public IdentifierNode(string name)
-    {
-        Name = name;
-    }
+    public string Name { get; } = name;
 
     public override void OnBuild(Stack<BuildAstStackFrame> stack, Queue<Node> nodes, BuildAstStackFrame frame)
     {

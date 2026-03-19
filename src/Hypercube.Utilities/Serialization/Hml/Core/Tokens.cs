@@ -1,8 +1,10 @@
+using System.Collections.Frozen;
+
 namespace Hypercube.Utilities.Serialization.Hml.Core;
 
 public static class Tokens
 {
-    public static readonly Dictionary<TokenType, string> TokenRegexs = new()
+    public static readonly FrozenDictionary<TokenType, string> TokenRegexs = new Dictionary<TokenType, string>
     {
         // Ends
         { TokenType.EndOfLine, @"\r?\n" },
@@ -37,5 +39,5 @@ public static class Tokens
         { TokenType.Comment, @"//[^\r\n]*" },
         { TokenType.LComment, "//*" },
         { TokenType.RComment, @"\*/" },
-    };
+    }.ToFrozenDictionary();
 }

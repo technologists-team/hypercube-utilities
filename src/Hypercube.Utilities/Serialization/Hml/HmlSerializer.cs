@@ -11,16 +11,23 @@ public static class HmlSerializer
     
     public static object Deserialize(string content, HmlSerializerOptions? options = null)
     {
-        throw new Exception();
+        options ??= new HmlSerializerOptions();
+        
+        var tokens = HmlLexer.Tokenize(content);
+        var parser = new HmlParser(tokens, options);
+        var ast = parser.Parse();
+
+        return HmlDeserializer.Compile<object>(ast, options);
     }
     
     public static T Deserialize<T>(string content, HmlSerializerOptions? options = null)
     {
-        /*options ??= new HmlSerializerOptions();
+        options ??= new HmlSerializerOptions();
         
         var tokens = HmlLexer.Tokenize(content);
-        var ast = HmlParser.Parse(tokens);*/
+        var parser = new HmlParser(tokens, options);
+        var ast = parser.Parse();
 
-        return default!; //compiler.Compile(ast, options);
+        return HmlDeserializer.Compile<T>(ast, options);
     }
 }

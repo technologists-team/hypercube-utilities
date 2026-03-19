@@ -7,15 +7,23 @@ public static class Program
 {
     public static void Main()
     {
-        var data = new
+        var data = new TestData
         {
             Name = "ТесмиДев",
             Age = 20,
-            Obj = new {},
-            Roles = new[]
-            {
+            Object = new TestObject(),
+            Roles =
+            [
                 "Programmer",
                 "Driver"
+            ],
+            Recursion = new TestData
+            {
+                Name = "TornadoTech",
+                Age = 0x1F1A,
+                Object = null!,
+                Roles = [],
+                Recursion = null,
             }
         };
         
@@ -25,11 +33,21 @@ public static class Program
             Indented = true,
             IndentSize = 2
         };
-
-        var serialized = HmlSerializer.Serialize(data, options);
-        var tokens = HmlLexer.Tokenize(serialized);
         
-        Console.WriteLine(HmlSerializer.Serialize(data, options));
-        Console.WriteLine(string.Join(Environment.NewLine, tokens));
+        var serialized = HmlSerializer.Serialize(data, options);
+        var deserialized = HmlSerializer.Deserialize<TestData>(serialized, options);
+        
+        Console.WriteLine(serialized);
     }
+
+    private class TestData
+    {
+        public string Name;
+        public int Age;
+        public TestObject Object;
+        public List<string> Roles;
+        public TestData? Recursion;
+    }
+
+    private class TestObject;
 }

@@ -24,38 +24,38 @@ public sealed class ListNode : Node, IValueNode
 
     public override string Render(Stack<RenderAstStackFrame> stack, StringBuilder buffer, RenderAstStackFrame frame, RenderAstState state, HmlSerializerOptions options)
     {
-        if (frame.State == 0)
+        switch (frame.State)
         {
-            buffer.Append('[');
-            state.PushIndent();
+            case RenderState.Start:
+                buffer.Append('[');
+                state.PushIndent();
             
-            if (Elements.Count == 0)
-            {
-                buffer.Append(']');
-                state.PopIndent();
-                return string.Empty;
-            }
+                if (Elements.Count == 0)
+                {
+                    buffer.Append(']');
+                    state.PopIndent();
+                    return string.Empty;
+                }
             
-            if (options.Indented)
-            {
-                buffer.AppendLine();
-                buffer.Append(state.Indent);
-            }
+                if (options.Indented)
+                {
+                    buffer.AppendLine();
+                    buffer.Append(state.Indent);
+                }
             
-            stack.Push(frame with { State = 2 });
-            if (Elements.Count > 1)
-                stack.Push(frame with { State = 1, Index = 1});
-            
-            stack.Push(new RenderAstStackFrame(Elements[0]));
-            return string.Empty;
-        }
-
-        if (frame.State == 1)
-        {
-            if (frame.Index < Elements.Count)
-            {
-                var index = frame.Index;
+                stack.Push(frame with { State = RenderState.End });
                 
+                if (Elements.Count > 1)
+                    stack.Push(frame with { State = RenderState.Body, Index = 1});
+            
+                stack.Push(new RenderAstStackFrame(Elements[0]));
+                break;
+            
+            case RenderState.Body:
+                if (frame.Index >= Elements.Count)
+                    return string.Empty;
+                
+                var index = frame.Index;
                 if (options.Eol || !options.Indented)
                     buffer.Append(';');
                 
@@ -65,23 +65,20 @@ public sealed class ListNode : Node, IValueNode
                     buffer.Append(state.Indent);
                 }
                 
-                stack.Push(frame with { State = 1,  Index = index + 1 });
+                stack.Push(frame with { State = RenderState.Body,  Index = index + 1 });
                 stack.Push(new RenderAstStackFrame(Elements[index]));
-            }
+                break;
             
-            return string.Empty;
-        }
-
-        if (frame.State == 2)
-        {
-            if (options.Indented)
-            {
-                buffer.AppendLine();
-                state.PopIndent();
-                buffer.Append(state.Indent);
-            }
-            buffer.Append(']');
-            return string.Empty;
+            case RenderState.End:
+                if (options.Indented)
+                {
+                    buffer.AppendLine();
+                    state.PopIndent();
+                    buffer.Append(state.Indent);
+                }
+                
+                buffer.Append(']');
+                break;
         }
         
         return string.Empty;

@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Reflection;
 using System.Text;
 using Hypercube.Utilities.Helpers;
 using Hypercube.Utilities.Serialization.Hml.Core.CompilerTypes;
@@ -150,3 +151,4 @@ public static class HmlCompiler
         return type.IsPrimitive || type.IsEnum || type == typeof(string);
     }
 }
+

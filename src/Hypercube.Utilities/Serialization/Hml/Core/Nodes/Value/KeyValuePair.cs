@@ -48,24 +48,24 @@ public class KeyValuePairNode : Node
 
     public override string Render(Stack<RenderAstStackFrame> stack, StringBuilder buffer, RenderAstStackFrame frame, RenderAstState state, HmlSerializerOptions options)
     {
-        if (frame.State == 0)
+        switch (frame.State)
         {
-            stack.Push(frame with { State = 1 });
-            stack.Push(new RenderAstStackFrame(Key));
-            return string.Empty;
-        }
-
-        if (frame.State == 1)
-        {
-            buffer.Append(":");
-
-            if (options.Indented)
-                buffer.Append(" ");
+            case RenderState.Start:
+                stack.Push(frame with { State = RenderState.Body });
+                stack.Push(new RenderAstStackFrame(Key));
+                return string.Empty;
             
-            stack.Push(new RenderAstStackFrame(Value));
-            return string.Empty;
+            case RenderState.Body:
+                buffer.Append(':');
+                
+                if (options.Indented)
+                    buffer.Append(' ');
+            
+                stack.Push(new RenderAstStackFrame(Value));
+                return string.Empty;
+            
+            default:
+                return string.Empty;
         }
-        
-        return string.Empty;
     }
 }

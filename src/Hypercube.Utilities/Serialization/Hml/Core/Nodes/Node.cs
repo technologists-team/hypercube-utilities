@@ -17,6 +17,12 @@ public abstract class Node : INode
         Parent = parent;
     }
 
-    public abstract void OnBuild(Stack<BuildAstStackFrame> stack, Queue<Node> nodes, BuildAstStackFrame frame);
-    public abstract string Render(Stack<RenderAstStackFrame> stack, StringBuilder buffer, RenderAstStackFrame frame, RenderAstState state, HmlSerializerOptions options);
+    public virtual void OnBuild(Stack<BuildAstStackFrame> stack, Queue<Node> nodes, BuildAstStackFrame frame)
+    {
+    }
+
+    public virtual string Render(Stack<RenderAstStackFrame> stack, StringBuilder buffer, RenderAstStackFrame frame, RenderAstState state, HmlSerializerOptions options)
+    {
+        return string.Empty;
+    }
 }

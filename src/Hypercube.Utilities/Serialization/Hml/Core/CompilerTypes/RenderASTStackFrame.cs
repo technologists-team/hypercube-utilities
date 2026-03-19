@@ -2,15 +2,10 @@ using Hypercube.Utilities.Serialization.Hml.Core.Nodes;
 
 namespace Hypercube.Utilities.Serialization.Hml.Core.CompilerTypes;
 
-public record RenderAstStackFrame
+public record RenderAstStackFrame(INode Node)
 {
-    public readonly INode Node;
+    public readonly INode Node = Node;
     
-    public int State;
+    public RenderState State;
     public int Index;
-
-    public RenderAstStackFrame(INode node)
-    {
-        Node = node;
-    }
 }

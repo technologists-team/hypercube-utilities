@@ -1,23 +1,16 @@
 namespace Hypercube.Utilities.Serialization.Hml.Core.CompilerTypes;
 
-public class RenderAstState
+public class RenderAstState(int indentSize)
 {
-    public readonly int IndentSize;
-    
     public string Indent { get; private set; } = string.Empty;
-
-    public RenderAstState(int indentSize)
-    {
-        IndentSize = indentSize;
-    }
 
     public void PushIndent()
     {
-        Indent += new string(' ', IndentSize);
+        Indent += new string(' ', indentSize);
     }
 
     public void PopIndent()
     {
-        Indent = Indent.Remove(Indent.Length - IndentSize);
+        Indent = Indent.Remove(Indent.Length - indentSize);
     }
 }

@@ -30,38 +30,38 @@ public class ObjectNode : Node, IValueNode
 
     public override string Render(Stack<RenderAstStackFrame> stack, StringBuilder buffer, RenderAstStackFrame frame, RenderAstState state, HmlSerializerOptions options)
     {
-        if (frame.State == 0)
+        switch (frame.State)
         {
-            buffer.Append('{');
-            state.PushIndent();
+            case RenderState.Start:
+                buffer.Append('{');
+                state.PushIndent();
             
-            if (options.Indented && Properties.Count != 0)
-            {
-                buffer.AppendLine();
-                buffer.Append(state.Indent);
-            }
+                if (options.Indented && Properties.Count != 0)
+                {
+                    buffer.AppendLine();
+                    buffer.Append(state.Indent);
+                }
 
-            if (Properties.Count == 0)
-            {
-                buffer.Append('}');
-                state.PopIndent();
-                return string.Empty;
-            }
+                if (Properties.Count == 0)
+                {
+                    buffer.Append('}');
+                    state.PopIndent();
+                    return string.Empty;
+                }
             
-            stack.Push(frame with { State = 2 });
-            if (Properties.Count > 1)
-                stack.Push(frame with { State = 1, Index = 1 });
-            
-            stack.Push(new RenderAstStackFrame(Properties[0]));
-            return string.Empty;
-        }
-
-        if (frame.State == 1)
-        {
-            if (frame.Index < Properties.Count)
-            {
-                var index = frame.Index;
+                stack.Push(frame with { State = RenderState.End });
                 
+                if (Properties.Count > 1)
+                    stack.Push(frame with { State = RenderState.Body, Index = 1 });
+            
+                stack.Push(new RenderAstStackFrame(Properties[0]));
+                break;
+            
+            case RenderState.Body:
+                if (frame.Index >= Properties.Count)
+                    return string.Empty;
+                
+                var index = frame.Index;
                 if (options.Eol || !options.Indented)
                     buffer.Append(';');
                 
@@ -71,25 +71,22 @@ public class ObjectNode : Node, IValueNode
                     buffer.Append(state.Indent);
                 }
                 
-                stack.Push(frame with { State = 1,  Index = index + 1 });
+                stack.Push(frame with { State = RenderState.Body,  Index = index + 1 });
                 stack.Push(new RenderAstStackFrame(Properties[index]));
-            }
+                break;
             
-            return string.Empty;
+            case RenderState.End:
+                if (options.Indented)
+                {
+                    buffer.AppendLine();
+                    state.PopIndent();
+                    buffer.Append(state.Indent);
+                }
+            
+                buffer.Append('}');
+                break;
         }
 
-        if (frame.State == 2)
-        {
-            if (options.Indented)
-            {
-                buffer.AppendLine();
-                state.PopIndent();
-                buffer.Append(state.Indent);
-            }
-            buffer.Append('}');
-            return string.Empty;
-        }
-        
         return string.Empty;
     }
 }
