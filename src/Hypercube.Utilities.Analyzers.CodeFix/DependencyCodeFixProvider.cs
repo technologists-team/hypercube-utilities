@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 
-namespace Hypercube.Analyzers.CodeFix;
+namespace Hypercube.Utilities.Analyzers.CodeFix;
 
 [Shared, ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(DependencyCodeFixProvider))]
 public sealed class DependencyCodeFixProvider : CodeFixProvider

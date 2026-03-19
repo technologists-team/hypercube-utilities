@@ -1,21 +1,19 @@
 using System.Text;
 using Hypercube.Utilities.Serialization.Hml.Core.CompilerTypes;
 
-namespace Hypercube.Utilities.Serialization.Hml.Core.Nodes.Value.Expression;
-/*
-public class BinaryExpressionNode : ExpressionNode
+namespace Hypercube.Utilities.Serialization.Hml.Core.Nodes;
+
+public class IdentifierNode(string name) : Node, IIdentifierNode
 {
-    public IValueNode Left { get; set; } = null!;
-    public string Operator { get; set; } = "";
-    public IValueNode Right { get; set; } = null!;
+    public string Name { get; } = name;
+
     public override void OnBuild(Stack<BuildAstStackFrame> stack, Queue<Node> nodes, BuildAstStackFrame frame)
     {
-        
+        // Do nothing
     }
 
     public override string Render(Stack<RenderAstStackFrame> stack, StringBuilder buffer, RenderAstStackFrame frame, RenderAstState state, HmlSerializerOptions options)
     {
-        return string.Empty;
+        return Name;
     }
 }
-*/

@@ -117,7 +117,7 @@ public sealed class HmlTests
 
         """;
 
-        var options = new HmlSerializerOptions { TrailingComma = false };
+        var options = new HmlSerializerOptions();
         
         var serialized = HmlSerializer.Serialize(new Weapon(), options);
         Assert.That(serialized, Is.EqualTo(expected));

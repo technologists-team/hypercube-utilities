@@ -3,16 +3,10 @@ using Hypercube.Utilities.Serialization.Hml.Core.CompilerTypes;
 
 namespace Hypercube.Utilities.Serialization.Hml.Core.Nodes.Value;
 
-public class ObjectNode : Node, IValueNode
+public sealed class ListNode : Node, IValueNode
 {
-    public List<KeyValuePairNode> Properties { get; } = [];
+    public List<IValueNode> Elements { get; } = [];
 
-    public void Add(KeyValuePairNode node)
-    {
-        Properties.Add(node);
-        node.SetParent(this);
-    }
-    
     public override void OnBuild(Stack<BuildAstStackFrame> stack, Queue<Node> nodes, BuildAstStackFrame frame)
     {
         var nextNode = nodes.Dequeue();
@@ -20,45 +14,45 @@ public class ObjectNode : Node, IValueNode
         if (nextNode is EndNode)
             return;
                 
-        if (nextNode is not KeyValuePairNode keyValuePair)
+        if (nextNode is not IValueNode valueNode)
             throw new Exception("");
                 
-        Properties.Add(keyValuePair);
+        Elements.Add(valueNode);
         stack.Push(frame);
-        stack.Push(new BuildAstStackFrame(keyValuePair, this));
-    } 
+        stack.Push(new BuildAstStackFrame(valueNode, this));
+    }
 
     public override string Render(Stack<RenderAstStackFrame> stack, StringBuilder buffer, RenderAstStackFrame frame, RenderAstState state, HmlSerializerOptions options)
     {
         switch (frame.State)
         {
             case RenderState.Start:
-                buffer.Append('{');
+                buffer.Append('[');
                 state.PushIndent();
             
-                if (options.Indented && Properties.Count != 0)
+                if (Elements.Count == 0)
                 {
-                    buffer.AppendLine();
-                    buffer.Append(state.Indent);
-                }
-
-                if (Properties.Count == 0)
-                {
-                    buffer.Append('}');
+                    buffer.Append(']');
                     state.PopIndent();
                     return string.Empty;
                 }
             
+                if (options.Indented)
+                {
+                    buffer.AppendLine();
+                    buffer.Append(state.Indent);
+                }
+            
                 stack.Push(frame with { State = RenderState.End });
                 
-                if (Properties.Count > 1)
-                    stack.Push(frame with { State = RenderState.Body, Index = 1 });
+                if (Elements.Count > 1)
+                    stack.Push(frame with { State = RenderState.Body, Index = 1});
             
-                stack.Push(new RenderAstStackFrame(Properties[0]));
+                stack.Push(new RenderAstStackFrame(Elements[0]));
                 break;
             
             case RenderState.Body:
-                if (frame.Index >= Properties.Count)
+                if (frame.Index >= Elements.Count)
                     return string.Empty;
                 
                 var index = frame.Index;
@@ -72,7 +66,7 @@ public class ObjectNode : Node, IValueNode
                 }
                 
                 stack.Push(frame with { State = RenderState.Body,  Index = index + 1 });
-                stack.Push(new RenderAstStackFrame(Properties[index]));
+                stack.Push(new RenderAstStackFrame(Elements[index]));
                 break;
             
             case RenderState.End:
@@ -82,11 +76,11 @@ public class ObjectNode : Node, IValueNode
                     state.PopIndent();
                     buffer.Append(state.Indent);
                 }
-            
-                buffer.Append('}');
+                
+                buffer.Append(']');
                 break;
         }
-
+        
         return string.Empty;
     }
 }

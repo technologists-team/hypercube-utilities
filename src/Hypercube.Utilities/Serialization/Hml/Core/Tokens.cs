@@ -1,19 +1,31 @@
+using System.Collections.Frozen;
+
 namespace Hypercube.Utilities.Serialization.Hml.Core;
 
 public static class Tokens
 {
-    public static readonly Dictionary<TokenType, string> TokenRegexs = new()
+    public static readonly FrozenDictionary<TokenType, string> TokenRegexs = new Dictionary<TokenType, string>
     {
-        { TokenType.Number, @"\d+(\.\d+)?" },
-        { TokenType.Boolean, @"\b(true|false)\b" },
-        
-        { TokenType.String, "\"(?<str>(?:[^\"\\\\]|\\\\.)*)\"" },
-        { TokenType.Char, @"'(?<ch>(?:[^'\\]|\\.))'" },
-        
+        // Ends
+        { TokenType.EndOfLine, @"\r?\n" },
+        { TokenType.EndOfFile, @"\z" },
+
+        // Fields
         { TokenType.Identifier, @"\b[a-zA-Z_!][a-zA-Z0-9_!]*\b|!" },
         
+        // Primitives
+        { TokenType.Number, @"\d+(\.\d+)?" },
+        { TokenType.Boolean, @"\b(true|false)\b" },
+        { TokenType.String,  """(?:"([^"\\\r\n]|\\.)*"|'([^'\\\r\n]|\\.)*')""" },
+        
+        // Symbols
         { TokenType.Colon, ":" },
         { TokenType.Equal, "=" },
+        { TokenType.Semicolon, ";" },
+        { TokenType.Comma, "," },
+        { TokenType.Dollar, @"\$" },
+        
+        // Groups
         { TokenType.LAngle, @"\<" },
         { TokenType.RAngle, @"\>" },
         { TokenType.LBracket, @"\[" },
@@ -22,13 +34,10 @@ public static class Tokens
         { TokenType.RParen, @"\)" },
         { TokenType.LBrace, @"\{" },
         { TokenType.RBrace, @"\}" },
-        { TokenType.Comma, "," },
         
-        { TokenType.Comment, "#.*" },
-        
-        { TokenType.Indent, @"(?<=\n)([ \t]+)(?=\S)" },
-        { TokenType.Dedent, @"(?<=\n)(?=\S)" },
-        
-        { TokenType.EndOfFile, @"\z" }
-    };
+        // Comments
+        { TokenType.Comment, @"//[^\r\n]*" },
+        { TokenType.LComment, "//*" },
+        { TokenType.RComment, @"\*/" },
+    }.ToFrozenDictionary();
 }

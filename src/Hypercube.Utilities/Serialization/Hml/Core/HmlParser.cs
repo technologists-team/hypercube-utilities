@@ -1,32 +1,67 @@
 using System.Runtime.CompilerServices;
 using Hypercube.Utilities.Serialization.Hml.Core.Nodes;
 using Hypercube.Utilities.Serialization.Hml.Core.Nodes.Value;
+using Hypercube.Utilities.Serialization.Hml.Core.Nodes.Value.Primitives;
+using Hypercube.Utilities.Serialization.Hml.Exceptions;
+using JetBrains.Annotations;
 
 namespace Hypercube.Utilities.Serialization.Hml.Core;
 
-public static class HmlParser
+[PublicAPI]
+public sealed class HmlParser
 {
-    public static IReadOnlyList<DefinitionNode> Parse(IReadOnlyList<Token> tokens)
+    private readonly IReadOnlyList<Token> _tokens;
+    private readonly HmlSerializerOptions _options;
+
+    private INode _context = null!;
+    private int _position;
+
+    private Token Current => _tokens[_position];
+    
+    public HmlParser(IReadOnlyList<Token> tokens, HmlSerializerOptions options)
     {
-        var result = new List<DefinitionNode>();
-        var pos = 0;
-
-        while (!Match(tokens, ref pos, TokenType.EndOfFile))
-            result.Add(ParseDefinition(tokens, ref pos));
-
-        return result;
+        _tokens = tokens;
+        _options = options;
     }
 
-    private static Token Consume(IReadOnlyList<Token> tokens, ref int pos, TokenType expected)
+    public void Reset()
     {
-        var token = Peek(tokens, ref pos);
+        _context = new RootNode();
+        _position = 0;
+    }
+    
+    public RootNode Parse()
+    {
+        Reset();
+
+        while (!Match(TokenType.EndOfFile))
+        {
+            switch (Current.Type)
+            {
+                case TokenType.LBrace:
+                    ParseObject();
+                    break;
+                
+                case TokenType.LBracket:
+                    ParseArray();
+                    break;
+            }
+        }
+
+        return (RootNode) _context;
+    }
+
+    private Token Consume(TokenType expected)
+    {
+        var token = Current;
         if (token.Type != expected)
-            throw new Exception($"Expected {expected}, got {token.Type}");
-        pos++;
+            throw new HmlException($"Expected {expected}, got {token.Type}");
+        
+        _position++;
         return token;
     }
 
-    private static DefinitionNode ParseDefinition(IReadOnlyList<Token> tokens, ref int pos)
+    /*private static DefinitionNode ParseDefinition(IReadOnlyList<Token> tokens, ref int pos)
     {
         var name = Consume(tokens, ref pos, TokenType.Identifier).Value;
         Consume(tokens, ref pos, TokenType.LAngle);
@@ -42,76 +77,116 @@ public static class HmlParser
             TypeName = typeName,
             Value = value
         };
+    }*/
+
+    private IValueNode ParseValue()
+    {
+        if (Match(TokenType.LBrace))
+            return ParseObject();
+        
+        if (Match(TokenType.LBracket))
+            return ParseArray();
+        
+        return ParseLiteral();
     }
 
-    private static ValueNode ParseValue(IReadOnlyList<Token> tokens, ref int pos)
+    private ObjectNode ParseObject()
     {
-        if (Match(tokens, ref pos, TokenType.LBrace)) return ParseObject(tokens, ref pos);
-        if (Match(tokens, ref pos, TokenType.LBracket)) return ParseArray(tokens, ref pos);
-        return ParseLiteral(tokens, ref pos);
-    }
-
-    private static ObjectNode ParseObject(IReadOnlyList<Token> tokens, ref int pos)
-    {
-        Consume(tokens, ref pos, TokenType.LBrace);
+        Consume(TokenType.LBrace);
+        
+        if (Match(TokenType.EndOfLine))
+            Consume(TokenType.EndOfLine);
+        
         var obj = new ObjectNode();
+        obj.SetParent(_context);
 
-        while (!Match(tokens, ref pos, TokenType.RBrace))
+        if (_context is RootNode rootNode)
+            rootNode.Child = obj;
+        
+        var previousContext = _context;
+        _context = obj;
+
+        while (!Match(TokenType.RBrace))
         {
-            var key = Consume(tokens, ref pos, TokenType.Identifier).Value;
-            Consume(tokens, ref pos, TokenType.Colon);
-            var val = ParseValue(tokens, ref pos);
-            obj.Properties[key] = val;
+            var key = Consume(TokenType.Identifier).Value;
+            
+            if (Match(TokenType.Colon))
+                Consume(TokenType.Colon);
+            
+            var val = ParseValue();
+            obj.Add(new KeyValuePairNode(new IdentifierNode(key), val));
+            
+            if (Match(TokenType.Semicolon))
+                Consume(TokenType.Semicolon);
+            
+            if (Match(TokenType.EndOfLine))
+                Consume(TokenType.EndOfLine);
         }
+        
+        _context = previousContext;
 
-        Consume(tokens, ref pos, TokenType.RBrace);
+        Consume(TokenType.RBrace);
         return obj;
     }
 
-    private static ArrayNode ParseArray(IReadOnlyList<Token> tokens, ref int pos)
+    private ListNode ParseArray()
     {
-        Consume(tokens, ref pos, TokenType.LBracket);
-        var arr = new ArrayNode();
+        Consume(TokenType.LBracket);
+        
+        if (Match(TokenType.EndOfLine))
+            Consume(TokenType.EndOfLine);
 
-        while (!Match(tokens, ref pos, TokenType.RBracket))
+        var list = new ListNode();
+        list.SetParent(_context);
+        
+        if (_context is RootNode rootNode)
+            rootNode.Child = list;
+
+        var previousContext = _context;
+        _context = list;
+
+        while (!Match(TokenType.RBracket))
         {
-            var key = Consume(tokens, ref pos, TokenType.Identifier).Value;
-            Consume(tokens, ref pos, TokenType.Colon);
-            var val = ParseValue(tokens, ref pos);
-            arr.Elements.Add(new KeyValuePair<string, ValueNode>(key, val));
+            // NOTE: Why dictionary parsing here?
+            // var key = Consume(TokenType.Identifier).Value;
+            // Consume(TokenType.Colon);
+            
+            var value = ParseValue();
+            list.Elements.Add(value);
+            
+            // list.Elements.Add(new KeyValuePair<string, IValueNode>(key, value));
+            
+            if (Match(TokenType.Semicolon))
+                Consume(TokenType.Semicolon);
+            
+            if (Match(TokenType.EndOfLine))
+                Consume(TokenType.EndOfLine);
         }
 
-        Consume(tokens, ref pos, TokenType.RBracket);
-        return arr;
+        _context = previousContext;
+        
+        Consume(TokenType.RBracket);
+        return list;
     }
 
-    private static LiteralNode ParseLiteral(IReadOnlyList<Token> tokens, ref int pos)
+    private IValueNode ParseLiteral()
     {
-        var tok = Peek(tokens, ref pos);
-        if (tok.Type is TokenType.String or TokenType.Number or TokenType.Boolean)
+        var token = Current;
+        _position++;
+        
+        return token.Type switch
         {
-            Next(tokens, ref pos);
-            return new LiteralNode { Value = tok.Value };
-        }
-
-        throw new Exception($"Expected literal, got {tok.Type}");
-    }
-    
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static Token Peek(IReadOnlyList<Token> tokens, ref int pos)
-    {
-        return tokens[pos];
+            TokenType.Number => new NumberValueNode(decimal.Parse(token.Value, _options.CultureInfo)),
+            TokenType.Boolean => new BoolValue(bool.Parse(token.Value)),
+            TokenType.String => new StringValueNode(token.Value.Trim('"').Trim('\'')),
+            TokenType.Identifier when token.Value == "null" => new NullValueNode(),
+            _ => throw new HmlException($"Cannot parse literal: {token.Type} ({token.Value})")
+        };
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static Token Next(IReadOnlyList<Token> tokens, ref int pos)
-    {
-        return tokens[pos++];
-    }
+    private Token Next() => _tokens[_position++];
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool Match(IReadOnlyList<Token> tokens, ref int pos, TokenType type)
-    {
-        return tokens[pos].Type == type;
-    }
+    private bool Match(TokenType type) => _tokens[_position].Type == type;
 }
