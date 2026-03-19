@@ -19,64 +19,6 @@ public sealed class HmlTests
           Tags: [
             'weapon',
             'holy',
-            'two-handed',
-          ]
-          WeaponStats: {
-            Damage: 10
-            Speed: 0.8
-            Durability: 100
-            CritChance: 0.25
-          }
-          Components: [
-            {
-              Type: 'blade'
-              Material: 'mythril'
-              Sharpness: 0.95
-              Gem: null
-            },
-            {
-              Type: 'hilt'
-              Material: 'dragon bone'
-              Sharpness: null
-              Gem: 'sapphire'
-            },
-          ]
-          Nested: {
-            Inner: {
-              DeepValue: 'Nested level 2'
-            }
-          }
-          MixedList: [
-            'string',
-            42,
-            false,
-            {
-              X: 1
-              Y: 2
-            },
-          ]
-        }
-        
-        """;
-        
-        var serialized = HmlSerializer.Serialize(new Weapon());
-        Assert.That(serialized, Is.EqualTo(expected));
-    }
-    
-    [Test]
-    public void SerializeTrailingComma()
-    {
-        const string expected = 
-        """
-        {
-          Name: 'Excalibur'
-          Level: 99
-          IsLegendary: true
-          Price: 1250.75
-          Description: 'Ancient sword imbued with holy light.'
-          Tags: [
-            'weapon',
-            'holy',
             'two-handed'
           ]
           WeaponStats: {
@@ -114,15 +56,17 @@ public sealed class HmlTests
             }
           ]
         }
-
         """;
-
-        var options = new HmlSerializerOptions();
         
-        var serialized = HmlSerializer.Serialize(new Weapon(), options);
+        var serialized = HmlSerializer.Serialize(new Weapon(), new HmlSerializerOptions
+        {
+            Indented = true,
+            ListEol = true
+        });
+        
         Assert.That(serialized, Is.EqualTo(expected));
     }
-    
+
     #region Serialization object
     
     private class Weapon

@@ -62,8 +62,8 @@ public class ObjectNode : Node, IValueNode
                     return string.Empty;
                 
                 var index = frame.Index;
-                if (options.Eol || !options.Indented)
-                    buffer.Append(';');
+                if (options.ObjectEol || !options.Indented)
+                    buffer.Append(',');
                 
                 if (options.Indented)
                 {

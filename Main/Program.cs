@@ -29,7 +29,7 @@ public static class Program
         
         var options = new HmlSerializerOptions
         {
-            Eol = false,
+            ListEol = false,
             Indented = true,
             IndentSize = 2
         };
