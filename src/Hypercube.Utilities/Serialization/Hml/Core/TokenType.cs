@@ -2,13 +2,13 @@ namespace Hypercube.Utilities.Serialization.Hml.Core;
 
 public enum TokenType : short
 {
-    // Fields
-    Identifier,
-    
-    // Primitives
+    // Primitives (must be before Identifier - more specific patterns)
     Number,
     Boolean,
     String,
+
+    // Fields
+    Identifier,
 
     // Symbols
     Colon,

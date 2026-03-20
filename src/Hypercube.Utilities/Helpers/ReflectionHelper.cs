@@ -15,7 +15,7 @@ public static class ReflectionHelper
     /// <summary>
     /// Standard flags to look for type members, including instances, public and non-public members.
     /// </summary>
-    private static readonly BindingFlags DefaultFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+    public static readonly BindingFlags DefaultFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
     
     /// <summary>
     /// Retrieves all types from all loaded assemblies that are decorated with a specific attribute.

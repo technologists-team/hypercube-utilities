@@ -20,7 +20,7 @@ public sealed class DependencyAnalyzer : DiagnosticAnalyzer
         Title,
         MessageFormat,
         Category,
-        DiagnosticSeverity.Error,
+        DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
         description: Description);
 

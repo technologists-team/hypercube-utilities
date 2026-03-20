@@ -50,7 +50,17 @@ public sealed class HmlParser
 
         return (RootNode) _context;
     }
+    
+    private Token Consume(params TokenType[] expected)
+    {
+        var token = Current;
+        if (!expected.Contains(token.Type))
+            throw new HmlException($"Expected {string.Join(" or ", expected)}, got {token.Type}");
 
+        _position++;
+        return token;
+    }
+    
     private Token Consume(TokenType expected)
     {
         var token = Current;
@@ -108,7 +118,7 @@ public sealed class HmlParser
 
         while (!Match(TokenType.RBrace))
         {
-            var key = Consume(TokenType.Identifier).Value;
+            var key = Consume(TokenType.Identifier, TokenType.String).Value;
             
             if (Match(TokenType.Colon))
                 Consume(TokenType.Colon);

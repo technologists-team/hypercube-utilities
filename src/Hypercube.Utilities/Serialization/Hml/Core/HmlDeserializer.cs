@@ -9,7 +9,7 @@ public static class HmlDeserializer
 {
     public static T Compile<T>(RootNode ast, HmlSerializerOptions options)
     {
-        return (T)Compile(ast.Child, typeof(T), options);
+        return (T) Compile(ast.Child, typeof(T), options);
     }
 
     private static object Compile(Node node, Type targetType, HmlSerializerOptions options)
@@ -26,13 +26,30 @@ public static class HmlDeserializer
 
     private static object CompileObject(ObjectNode node, Type targetType, HmlSerializerOptions options)
     {
-        var obj = Activator.CreateInstance(targetType) 
-            ?? throw new InvalidOperationException($"Cannot create instance of {targetType}");
+        if (typeof(System.Collections.IDictionary).IsAssignableFrom(targetType))
+        {
+            var valueType = targetType.IsGenericType
+                ? targetType.GetGenericArguments()[1] 
+                : typeof(object);
 
+            var dict = (System.Collections.IDictionary?)
+                Activator.CreateInstance(targetType) ?? throw new InvalidOperationException($"Cannot create instance of {targetType}");
+
+            foreach (var kvp in node.Properties)
+            {
+                var key = kvp.Key.Name;
+                var value = Compile((Node) kvp.Value, valueType, options);
+                dict.Add(key, value);
+            }
+
+            return dict;
+        }
+        
+        var obj = Activator.CreateInstance(targetType) ?? throw new InvalidOperationException($"Cannot create instance of {targetType}");
         foreach (var kvp in node.Properties)
         {
             var propertyName = kvp.Key.Name;
-            var propertyValue = Compile((Node) kvp.Value, GetPropertyType(obj, propertyName), options);
+            var propertyValue = Compile((Node) kvp.Value, GetPropertyType(targetType, propertyName), options);
             SetPropertyOrField(obj, propertyName, propertyValue);
         }
 

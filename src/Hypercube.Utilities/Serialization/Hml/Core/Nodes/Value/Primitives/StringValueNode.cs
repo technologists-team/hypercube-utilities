@@ -9,7 +9,7 @@ public class StringValueNode : PrimitiveValueNode, IIdentifierNode
 
     public string Name => Value;
 
-    public StringValueNode(string value)
+    public StringValueNode(string? value)
     {
         Value = value;
     }

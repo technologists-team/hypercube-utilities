@@ -1,11 +1,11 @@
 using System.Collections;
-using System.Reflection;
 using System.Text;
 using Hypercube.Utilities.Helpers;
 using Hypercube.Utilities.Serialization.Hml.Core.CompilerTypes;
 using Hypercube.Utilities.Serialization.Hml.Core.Nodes;
 using Hypercube.Utilities.Serialization.Hml.Core.Nodes.Value;
 using Hypercube.Utilities.Serialization.Hml.Core.Nodes.Value.Primitives;
+using Hypercube.Utilities.Serialization.Hml.Exceptions;
 
 namespace Hypercube.Utilities.Serialization.Hml.Core;
 
@@ -46,6 +46,40 @@ public static class HmlCompiler
                 continue;
             }
 
+            // Dictionaries
+            if (current is IDictionary genericDict)
+            {
+                // NOTE: It's so weird shit, kill me
+                var isRoot = stack.Count == 0;
+                
+                nodeQueue.Enqueue(new ObjectNode());
+                stack.Push(new EndNode());
+
+                var entries = genericDict.Cast<object>().ToList();
+                for (var i = entries.Count - 1; i >= 0; i--)
+                {
+                    var entry = entries[i];
+
+                    var type = entry.GetType();
+                    var key = type.GetProperty("Key")!.GetValue(entry);
+                    var value = type.GetProperty("Value")!.GetValue(entry);
+
+                    stack.Push(value);
+
+                    if (key is null)
+                        throw new HmlException();
+                    
+                    Node keyNode = key is string && !(isRoot && options.RootAsIdentifier)
+                        ? new StringValueNode(key.ToString())
+                        : new IdentifierNode(key.ToString() ?? string.Empty); // NOTE: May be exception? 
+                    
+                    stack.Push(keyNode);
+                    stack.Push(new KeyValuePairNode());
+                }
+
+                continue;
+            }
+            
             // Arrays, lists
             if (current is IList list)
             {
@@ -139,6 +173,9 @@ public static class HmlCompiler
             // Strings
             string value => new StringValueNode(value),
             char value => new StringValueNode(value),
+            
+            // Enum
+            Enum value => new StringValueNode(value.ToString()),
             
             // Unknown
             _ => new UnknownValueNode(obj)
