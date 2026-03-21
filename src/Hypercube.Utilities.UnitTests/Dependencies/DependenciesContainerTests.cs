@@ -141,6 +141,7 @@ public sealed class DependenciesContainerTests
         
         container.Register<IService, Service>();
         container.Register<DependentInConstructor>();
+        
         container.ResolveAll();
         
         var instance = container.Resolve<DependentInConstructor>();
@@ -270,16 +271,16 @@ public sealed class DependenciesContainerTests
             Assert.That(instance.ServicePostInjected, Is.EqualTo(container.Resolve<IService>()));
         });
     }
-
     
     private interface IService;
+    
     private class Service : IService;
     
     private sealed class DependentInConstructor
     {
         // ReSharper disable once MemberHidesStaticFromOuterClass
         public readonly IService? Service;
-
+        
         [UsedImplicitly, Dependency]
         private readonly IService _service;
 

@@ -17,7 +17,6 @@ public static class HyperUnsafe
             return *(TResult*)ptr;
     }
     
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static TResult AsManaged<TValue, TResult>(ref TValue value) where TValue : class where TResult : class
     {
