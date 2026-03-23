@@ -128,23 +128,7 @@ public sealed class DependenciesContainerTests
         
         container.Register<IService, Service>();
         
-        var instance = container.Instantiate<DependentInConstructor>();
-        
-        Assert.That(instance.Service, Is.Not.Null);
-        Assert.That(instance.Service, Is.TypeOf<Service>());
-    }
-    
-    [Test]
-    public void InjectInConstructorAll()
-    {
-        var container = new DependenciesContainer();
-        
-        container.Register<IService, Service>();
-        container.Register<DependentInConstructor>();
-        
-        container.ResolveAll();
-        
-        var instance = container.Resolve<DependentInConstructor>();
+        var instance = container.Instantiate<DependentConstructor>();
         
         Assert.That(instance.Service, Is.Not.Null);
         Assert.That(instance.Service, Is.TypeOf<Service>());
@@ -248,9 +232,9 @@ public sealed class DependenciesContainerTests
         var container = new DependenciesContainer();
 
         container.Register<IService, Service>();
-        container.Register<DependentInConstructor>();
+        container.Register<DependentConstructor>();
 
-        var service = container.Resolve<DependentInConstructor>().Service;
+        var service = container.Resolve<DependentConstructor>().Service;
         
         Assert.That(service, Is.EqualTo(container.Resolve<IService>()));
     }
@@ -275,20 +259,6 @@ public sealed class DependenciesContainerTests
     private interface IService;
     
     private class Service : IService;
-    
-    private sealed class DependentInConstructor
-    {
-        // ReSharper disable once MemberHidesStaticFromOuterClass
-        public readonly IService? Service;
-        
-        [UsedImplicitly, Dependency]
-        private readonly IService _service;
-
-        public DependentInConstructor()
-        {
-            Service = _service;
-        }
-    }
 
     private sealed class DependentPostInject : IPostInject
     {

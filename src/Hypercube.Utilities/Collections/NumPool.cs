@@ -47,6 +47,13 @@ public class NumPool<T> where T : struct, INumber<T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Invalid(T value) => value < T.Zero || value > _counter || _released.Contains(value);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Reset()
+    {
+        _counter = T.Zero;
+        _released.Clear();
+    }
+    
     /// <summary>
     /// Generates a new sequential number.
     /// </summary>

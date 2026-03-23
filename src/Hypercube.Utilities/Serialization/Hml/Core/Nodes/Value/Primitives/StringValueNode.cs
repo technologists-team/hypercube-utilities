@@ -11,7 +11,7 @@ public class StringValueNode : PrimitiveValueNode, IIdentifierNode
 
     public StringValueNode(string? value)
     {
-        Value = value;
+        Value = value ?? string.Empty;
     }
 
     public StringValueNode(char value)

@@ -89,12 +89,14 @@ public class DependenciesContainer : IDependenciesContainer
             // Okay, this idea works,
             // but I don't have enough influence over the editor
             // to make it work the way I need it to
-            Inject(instance, autoInject: true);
+            // Inject(instance, autoInject: true);
             
             var parameters = constructor.GetParameters();
             constructor.Invoke(instance, parameters.Length == 0
                 ? []
                 : parameters.Select(p => container.Resolve(p.ParameterType)).ToArray());
+            
+            Inject(instance, autoInject: true);
             
             return instance;
         }
