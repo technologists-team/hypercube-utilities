@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
-    <Version>1.1.2</Version>
+    <Version>1.4.0</Version>
 
     <IsRoslynComponent>true</IsRoslynComponent>
     <OutputItemType>Analyzer</OutputItemType>
