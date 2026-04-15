@@ -1,5 +1,4 @@
 ﻿using Hypercube.Utilities.Constants;
-using JetBrains.Annotations;
 
 namespace Hypercube.Utilities.Debugging.Logger;
 
@@ -84,9 +83,8 @@ public abstract class Logger : ILogger
     {
         Log(LogLevel.Critical, exception, message);
     }
-
-    [PublicAPI]
-    protected static string GetColor(LogLevel level)
+    
+    public virtual string GetColor(LogLevel level)
     {
         return level switch
         {

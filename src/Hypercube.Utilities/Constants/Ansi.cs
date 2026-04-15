@@ -162,7 +162,22 @@ public static class Ansi
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string BackgroundRgb(int r, int g, int b) => $"\u001b[48;2;{r};{g};{b}m";
+    
+    public static string Wrap(string text, string ansiCode)
+    {
+        if (string.IsNullOrEmpty(text))
+            return text;
+        
+        var lines = text.Split(["\r\n", "\r", "\n"], StringSplitOptions.None);
+        for (var i = 0; i < lines.Length; i++)
+        {
+            if (!string.IsNullOrEmpty(lines[i]))
+                lines[i] = $"{ansiCode}{lines[i]}{Reset}";
+        }
 
+        return string.Join(Environment.NewLine, lines);
+    }
+    
     // Utility methods for gradients and patterns (optional extension)
     public static string GradientText(string text, Func<int, (int R, int G, int B)> colorFunction)
     {
