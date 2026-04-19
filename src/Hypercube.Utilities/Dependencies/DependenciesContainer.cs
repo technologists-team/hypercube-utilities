@@ -92,10 +92,20 @@ public class DependenciesContainer : IDependenciesContainer
             // Inject(instance, autoInject: true);
             
             var parameters = constructor.GetParameters();
-            constructor.Invoke(instance, parameters.Length == 0
-                ? []
-                : parameters.Select(p => container.Resolve(p.ParameterType)).ToArray());
+
+            if (parameters.Length == 0)
+            {
+                constructor.Invoke(instance, null);
+                Inject(instance, autoInject: true);
+                
+                return instance;
+            }
+
+            var resolvedParameters = parameters
+                .Select(p => container.Resolve(p.ParameterType))
+                .ToArray();
             
+            constructor.Invoke(instance, resolvedParameters);
             Inject(instance, autoInject: true);
             
             return instance;
