@@ -110,7 +110,7 @@ public interface IDependenciesContainer
     /// <remarks>
     /// Completely ignores <see cref="DependencyLifetime.Transient"/> dependencies.
     /// </remarks>
-    void ResolveAll();
+    List<object> ResolveAll();
     
     #endregion
 

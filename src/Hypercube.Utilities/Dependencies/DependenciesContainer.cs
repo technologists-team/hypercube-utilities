@@ -159,10 +159,11 @@ public class DependenciesContainer : IDependenciesContainer
     }
     
     /// <inheritdoc/>
-    public void ResolveAll()
+    public List<object> ResolveAll()
     {
         lock (_lock)
         {
+            var result = new List<object>();
             foreach (var (type, registration) in _registrations)
             {
                 if (registration.Lifetime == DependencyLifetime.Transient)
@@ -171,8 +172,9 @@ public class DependenciesContainer : IDependenciesContainer
                 if (_instances.ContainsKey(type))
                     continue;
 
-                Resolve(type);
+                result.Add(Resolve(type));
             }
+            return result;
         }
     }
     
