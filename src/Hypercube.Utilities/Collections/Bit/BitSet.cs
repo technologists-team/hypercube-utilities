@@ -204,18 +204,14 @@ public sealed class BitSet : IEquatable<BitSet>, IBitSet
             var simd = Vector<ulong>.Count;
             var simdEnd = minLength - (minLength % simd);
 
-            var acc = Vector<ulong>.Zero;
-
             for (; i < simdEnd; i += simd)
             {
                 var va = new Vector<ulong>(a, i);
                 var vb = new Vector<ulong>(b, i);
 
-                acc |= va & ~vb;
+                if (!Vector.EqualsAll(va & ~vb, Vector<ulong>.Zero))
+                    return false;
             }
-
-            if (!Vector.EqualsAll(acc, Vector<ulong>.Zero))
-                return false;
         }
 
         for (; i < minLength; i++)
@@ -232,12 +228,9 @@ public sealed class BitSet : IEquatable<BitSet>, IBitSet
 
         return true;
     }
-
-    public bool AnyOrEmpty(BitSet other)
-    {
-        return Any(other) || IsZero;
-    }
     
+    public bool AnyOrEmpty(BitSet other) => Any(other) || IsZero;
+
     public bool Any(BitSet other)
     {
         // (this & other) != 0
@@ -251,20 +244,16 @@ public sealed class BitSet : IEquatable<BitSet>, IBitSet
         if (Vector.IsHardwareAccelerated)
         {
             var simd = Vector<ulong>.Count;
-            var simdEnd = minLength - minLength % simd;
-
-            var acc = Vector<ulong>.Zero;
+            var simdEnd = minLength - (minLength % simd);
 
             for (; i < simdEnd; i += simd)
             {
                 var va = new Vector<ulong>(a, i);
                 var vb = new Vector<ulong>(b, i);
 
-                acc |= va & vb;
+                if (!Vector.EqualsAll(va & vb, Vector<ulong>.Zero))
+                    return true;
             }
-
-            if (!Vector.EqualsAll(acc, Vector<ulong>.Zero))
-                return true;
         }
 
         for (; i < minLength; i++)
@@ -291,18 +280,14 @@ public sealed class BitSet : IEquatable<BitSet>, IBitSet
             var simd = Vector<ulong>.Count;
             var simdEnd = minLength - (minLength % simd);
 
-            var acc = Vector<ulong>.Zero;
-
             for (; i < simdEnd; i += simd)
             {
                 var va = new Vector<ulong>(a, i);
                 var vb = new Vector<ulong>(b, i);
 
-                acc |= va & vb;
+                if (!Vector.EqualsAll(va & vb, Vector<ulong>.Zero))
+                    return false;
             }
-
-            if (!Vector.EqualsAll(acc, Vector<ulong>.Zero))
-                return false;
         }
 
         for (; i < minLength; i++)
