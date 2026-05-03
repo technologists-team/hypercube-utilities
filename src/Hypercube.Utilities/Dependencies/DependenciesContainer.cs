@@ -247,13 +247,18 @@ public class DependenciesContainer : IDependenciesContainer
             throw new InvalidOperationException("Instance cannot be null.");
 
         var type = instance.GetType();
+        var injected = 0;
 
         foreach (var field in type.GetAllFields(binding))
         {
             if (!Attribute.IsDefined(field, typeof(DependencyAttribute)))
                 continue;
 
+            if (field.GetValue(instance) is not null)
+                continue;
+            
             field.SetValue(instance, LocalResolve(field.FieldType, instance));
+            injected++;
         }
 
         foreach (var property in type.GetProperties(binding))
@@ -264,7 +269,11 @@ public class DependenciesContainer : IDependenciesContainer
             if (!property.CanWrite)
                 continue;
 
+            if (property.GetValue(instance) is not null)
+                continue;
+            
             property.SetValue(instance, LocalResolve(property.PropertyType, instance));
+            injected++;
         }
 
         foreach (var method in type.GetMethods(binding))
@@ -280,14 +289,14 @@ public class DependenciesContainer : IDependenciesContainer
             method.Invoke(instance, parametersResolved);
         }
         
-        if (instance is IPostInject postInject)
+        if (instance is IPostInject postInject && injected > 0)
             postInject.OnPostInject();
         
         return;
 
-        object LocalResolve(Type localType, object injected)
+        object LocalResolve(Type localType, object target)
         {
-            var resolved = ResolveInternal(localType, injected);
+            var resolved = ResolveInternal(localType, target);
             if (autoInject)
                 Inject(resolved, autoInject: true);
             
