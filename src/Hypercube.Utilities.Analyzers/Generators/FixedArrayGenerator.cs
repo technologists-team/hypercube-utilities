@@ -74,37 +74,32 @@ public sealed class FixedArrayGenerator : IIncrementalGenerator
         {
             sb.AppendLine($"namespace {ns}");
             sb.AppendLine("{");
-            sb.Append("    ");
         }
 
-        sb.AppendLine("[StructLayout(LayoutKind.Sequential)]");
-        sb.AppendLine($"public partial struct {structName}<T> where T : unmanaged");
-        sb.AppendLine("{");
-        sb.AppendLine($"    public static {structName}<T> Empty => new {structName}<T>();");
+        sb.AppendLine( "    [StructLayout(LayoutKind.Sequential)]");
+        sb.AppendLine($"    public partial struct {structName}<T> where T : unmanaged");
+        sb.AppendLine( "    {");
+        sb.AppendLine($"        public static {structName}<T> Empty => new {structName}<T>();");
         sb.AppendLine();
-        sb.AppendLine($"    public const int Length = {length};");
+        sb.AppendLine($"        public const int Length = {length};");
         sb.AppendLine();
         
         for (var i = 0; i < length; i++)
-            sb.AppendLine($"    private T _element{i};");
+            sb.AppendLine($"        private T _element{i};");
         
         sb.AppendLine();
         
-        sb.AppendLine("    public ref T this[int index]");
-        sb.AppendLine("    {");
-        sb.AppendLine("        [MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine("        get => ref AsSpan()[index];");
+        sb.AppendLine("        public ref T this[int index]");
+        sb.AppendLine("        {");
+        sb.AppendLine("            [MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        sb.AppendLine("            get => ref AsUnsafeSpan()[index];");
+        sb.AppendLine("        }");
+        sb.AppendLine();
+        
+        GenerateConstructors(sb, structName, length);
+        GenerateSpan(sb, length);
+
         sb.AppendLine("    }");
-        sb.AppendLine();
-        
-        sb.Append(GenerateConstructors(structName, length));
-
-        sb.AppendLine("    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine(length > 0
-            ? "    public Span<T> AsSpan() => MemoryMarshal.CreateSpan(ref _element0, Length);"
-            : "    public Span<T> AsSpan() => Span<T>.Empty;");
-
-        sb.AppendLine("}");
 
         if (!string.IsNullOrEmpty(ns))
             sb.AppendLine("}");
@@ -112,10 +107,8 @@ public sealed class FixedArrayGenerator : IIncrementalGenerator
         return sb.ToString();
     }
 
-    private static string GenerateConstructors(string structName, int length)
+    private static void GenerateConstructors(StringBuilder stringBuilder, string structName, int length)
     {
-        var sb = new StringBuilder();
-
         for (var count = 1; count <= length; count++)
         {
             var ctorParams = new StringBuilder();
@@ -125,19 +118,37 @@ public sealed class FixedArrayGenerator : IIncrementalGenerator
                 ctorParams.Append($"T element{i}");
             }
 
-            sb.AppendLine($"    public {structName}({ctorParams})");
-            sb.AppendLine("    {");
+            stringBuilder.AppendLine($"        public {structName}({ctorParams})");
+            stringBuilder.AppendLine( "        {");
+           
             for (var i = 0; i < length; i++)
             {
-                sb.AppendLine(i < count
-                    ? $"        _element{i} = element{i};"
-                    : $"        _element{i} = default;");
+                stringBuilder.AppendLine(i < count
+                    ? $"            _element{i} = element{i};"
+                    : $"            _element{i} = default;");
             }
             
-            sb.AppendLine("    }");
-            sb.AppendLine();
+            stringBuilder.AppendLine("        }");
+            stringBuilder.AppendLine();
         }
+    }
 
-        return sb.ToString();
+    private static void GenerateSpan(StringBuilder stringBuilder, int length)
+    {
+        stringBuilder.AppendLine();
+        stringBuilder.AppendLine("          [MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        stringBuilder.AppendLine("          public ReadOnlySpan<T> AsSpan() => AsUnsafeSpan();");
+        
+        if (length > 0)
+        {
+            stringBuilder.AppendLine();
+            stringBuilder.AppendLine("          [MethodImpl(MethodImplOptions.AggressiveInlining)]");
+            stringBuilder.AppendLine("          public Span<T> AsUnsafeSpan() => MemoryMarshal.CreateSpan(ref _element0, Length);");
+            return;
+        }
+        
+        stringBuilder.AppendLine();
+        stringBuilder.AppendLine("          [MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        stringBuilder.AppendLine("          public Span<T> AsUnsafeSpan() => Span<T>.Empty;");
     }
 }
