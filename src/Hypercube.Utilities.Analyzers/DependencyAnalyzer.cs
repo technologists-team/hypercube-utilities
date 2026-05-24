@@ -21,7 +21,7 @@ public sealed class DependencyAnalyzer : DiagnosticAnalyzer
         MessageFormat,
         Category,
         DiagnosticSeverity.Warning,
-        isEnabledByDefault: true,
+        isEnabledByDefault: false,
         description: Description);
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [Rule];
