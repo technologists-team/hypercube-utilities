@@ -1,9 +1,0 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-    
-    <Import Project="..\..\build\main.props" />
-    <Import Project="..\..\build\package.props" />
-    <ItemGroup>
-      <PackageReference Include="JetBrains.Annotations" Version="2025.2.2" />
-    </ItemGroup>
-    
-</Project>
