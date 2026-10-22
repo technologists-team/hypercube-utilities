@@ -2,13 +2,15 @@
 
   <PropertyGroup>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <OutputPath>../../bin</OutputPath>
+    
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>assets/logo.png</PackageIcon>
+
+    <Version>1.4.0</Version>
     <Authors>TornadoTech</Authors>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <RepositoryUrl>https://github.com/technologists-team/hypercube-utilities</RepositoryUrl>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <OutputPath>../../bin</OutputPath>
   </PropertyGroup>
 
   <ItemGroup>
